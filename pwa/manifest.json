@@ -1,7 +1,7 @@
 {
-  "name": "Hux Blog",
-  "short_name": "Hux Blog",
-  "description": "About an engineer & designer who loves web.",
+  "name": "julyerr Blog",
+  "short_name": "julyerr Blog",
+  "description": "技术的魅力在于精简、实用、优雅",
   "icons": [{
     "src": "icons/128.png",
     "sizes": "128x128",
