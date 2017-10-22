@@ -5,7 +5,7 @@ header-img: img/home-bg.jpg
 email: julyerr.test@gmail.com
 description: "Gopher ，容器云 、 微服务方向的大牛修炼中,平时也玩玩AI"
 keyword: "julyerr, julyerr Blog, golang,python,linux,leetcode,docker,k8s,container,micro service..."
-url: "julyerr.github.io"              # your host, for absolute URL
+url: "https://julyerr.github.io"              # your host, for absolute URL
 baseurl: ""                             # for example, '/blog' if your blog hosted on 'host/blog'
 
 
