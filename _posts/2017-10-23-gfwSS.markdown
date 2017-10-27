@@ -1,0 +1,98 @@
+---
+layout:     post
+title:      "shadowsocks(ss) + polipo 实现命令行的全局翻墙代理"
+subtitle:   "命令行全局代理总结"
+date:       2017-10-23 22:00:00
+author:     "julyerr"
+header-img: "img/post-bg-gfw.jpg"
+header-mask: 0.5
+catalog: 	true
+tags:
+    - proxy
+    - tools
+    - tech
+---
+
+>网上已经有比较多的blog讲解如何使用实现命令行的翻墙，但是总想总结出一篇比较全面的ss代理翻墙的教程。如果部分有错，希望大家不惜赐教。
+
+## gfw ?
+
+&emsp;gfw的作用简单来说，就是将我们大陆的主机限制在巨大的“局域网”中。很多国外的网站基本上都不能访问，这对于技术人员而言简直就是一个灾难。如果大家有兴趣的话，可以了解和研究一下gfw的工作原理（推测，具体没有公布），请参考这片[文章][1]。
+
+## 翻墙手段
+
+&emsp;就个人而言，比较常用的翻墙手段是`ss`,`vpn`。这篇blog介绍ss，vpn本人还没有试过，以后有时间添加进来。
+
+## shadowsocks 翻墙原理：
+
+![](/img/what-is-shadowsocks.png)
+socks协议的双方为server,client，两者之间通过socks协议通信；由于两者之间已经加密，可以绕过GFW的监控。具体参考这篇[文章][2]。socks翻墙的优缺点：
+&emsp;&emsp;**优点**：server,client之间可以选择任意的加密方式进行通信
+&emsp;&emsp;**缺点**：需要专门的ssServer进行socks协议的代理服务器，不支持超过tcp|udp通信方式，比如ping命令就不行。
+
+因此，需要有海外的socksserver主机，幸好有专门的销售socks账号的商家，不需要我们再购买海外的主机，自己搭建socks server。具体购买流程，请自行搜索或者留言。购买之后，会得到商家相应的主机、端口号、密码以及加密方式等。
+
+## 安装流程
+
+### 1. client安装
+
+非常感谢[博主][3]一键安装脚本，本人稍微修改，适应ubuntu system系统；具体过程请[移步][4]。由于有专门sserver服务器，我们只需要client就行了。有很多client版本，推荐使用go-shadowsoc：
+
+ + golang高性能和高并发性
+ + 安装不需要其他的依赖包(本人自己制作了二进制包)，安装和删除较为方便。
+ 
+### 2. 中间代理安装
+
+由于很多命令curl，wget以及apt等使用的http、https协议进行通信，显然我们需要中间部分将http协议转换成socks协议，这样，socks server才能实现代理。比较常用的`privoxy`、`polipo`，这里稍微总结
+    + polipo:配置简单，轻便(适合ubuntu\mac系统)
+    + privory:偏重代理中的过滤，功能强大,配置也相对复杂一点
+
+&emsp;&emsp;具体比较可以参考这篇[文章][6]。由于只是实现终端翻墙设置，本人使用mint系统(和ubuntu兼容)，因此以polipo为例；后面会添加privoxy的blog介绍，先可参考这篇[文章][5]。
+
+**安装**
+```shell
+sudo apt-get install polipo
+```
+**配置**
+```shell
+sudo vim /etc/polipo/config
+# Uncomment this if you want to use a parent SOCKS proxy:
+# socks client监听的地址
+socksParentProxy = "localhost:1080"
+#使用协议版本
+socksProxyType = socks5
+```
+**控制命令**
+```shell			
+sudo systemctl start polipo
+sudo systemctl stop polipo
+```		
+## http系统变量：
+
+命令行终端可以设置http协议代理的系统变量，设置之后就相当于某个命令使用http协议(https协议只是在http上面添加了ssl加密层)，系统会自动转发至该地址
+```shell
+export http_proxy=http://localhost:8123
+``` 
+不建议写入~/.bashrc，ping命令可能出现问题，为了方便可以设置命令别名代替
+```shell
+alias hpx='http_proxy=http://localhost:8123'
+```	
+至此，只需要设置`http_proxy`系统环境代理变量，就能愉快的实现wget google.com。有问题，欢迎大家留言。
+
+**备注**
+		可能大家注意到命令行使用proxychains4代理，原理都是一样的，只是针对具体的某条命令使用代理，例如
+```shell			
+proxychains4 wget google.com 
+```
+由于proxychains还需要进行源码编译安装，每条命令添加前缀相对较为麻烦，这里就不介绍，具体可以参考这篇[blog][7]。	
+
+
+
+[1]:http://allenn.cn/articles/2016-10/2016-10-20-learn-gfw/
+[2]:https://tumutanzi.com/archives/13005
+[3]:https://teddysun.com/486.html
+[4]:scripts的讲解
+[5]:http://www.renhl.com/linux/2017/02/03/use-shadowsocks-and-privoxy
+[6]:https://www.igfw.net/archives/1178/comment-page-1
+[7]:http://www.jianshu.com/p/9125637e7aec
+
