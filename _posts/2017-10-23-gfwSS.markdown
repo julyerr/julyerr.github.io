@@ -27,7 +27,7 @@ tags:
 
 ![](/img/what-is-shadowsocks.png)
 socks协议的双方为server,client，两者之间通过socks协议通信；由于两者之间已经加密，可以绕过GFW的监控。具体参考这篇[文章][2]。socks翻墙的优缺点：
-&emsp;&emsp;**优点**：server,client之间可以选择任意的加密方式进行通信
+&emsp;&emsp;**优点**：server,client之间可以选择任意的加密方式进行通信<br/>
 &emsp;&emsp;**缺点**：需要专门的ssServer进行socks协议的代理服务器，不支持超过tcp|udp通信方式，比如ping命令就不行。
 
 因此，需要有海外的socksserver主机，幸好有专门的销售socks账号的商家，不需要我们再购买海外的主机，自己搭建socks server。具体购买流程，请自行搜索或者留言。购买之后，会得到商家相应的主机、端口号、密码以及加密方式等。
@@ -36,11 +36,17 @@ socks协议的双方为server,client，两者之间通过socks协议通信；由
 
 ### 1. client安装
 
-非常感谢[博主][3]一键安装脚本，本人稍微修改，适应ubuntu system系统；具体过程请[移步][4]。由于有专门sserver服务器，我们只需要client就行了。有很多client版本，推荐使用go-shadowsoc：
+非常感谢[博主][3]一键安装脚本，本人稍微修改，适应ubuntu system系统；具体过程请[移步][4]
+。由于有专门sserver服务器，我们只需要client就行了。有很多client版本，推荐使用go-shadowsocks：
 
  + golang高性能和高并发性
  + 安装不需要其他的依赖包(本人自己制作了二进制包)，安装和删除较为方便。
- 
+ ```shell
+wget -c https://github.com/julyerr/julyerr.github.io/raw/master/utils/shadowsocks-install.sh
+chmod +x shadowsocks-install.sh
+#控制命令
+./shadowsocks-install.sh install|uninstall
+ ```
 ### 2. 中间代理安装
 
 由于很多命令curl，wget以及apt等使用的http、https协议进行通信，显然我们需要中间部分将http协议转换成socks协议，这样，socks server才能实现代理。比较常用的`privoxy`、`polipo`，这里稍微总结
@@ -79,7 +85,7 @@ alias hpx='http_proxy=http://localhost:8123'
 ```	
 至此，只需要设置`http_proxy`系统环境代理变量，就能愉快的实现wget google.com。有问题，欢迎大家留言。
 
-**备注**
+**备注**<br/>
 		可能大家注意到命令行使用proxychains4代理，原理都是一样的，只是针对具体的某条命令使用代理，例如
 ```shell			
 proxychains4 wget google.com 
@@ -95,4 +101,3 @@ proxychains4 wget google.com
 [5]:http://www.renhl.com/linux/2017/02/03/use-shadowsocks-and-privoxy
 [6]:https://www.igfw.net/archives/1178/comment-page-1
 [7]:http://www.jianshu.com/p/9125637e7aec
-
