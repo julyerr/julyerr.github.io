@@ -34,8 +34,6 @@ public ListUdg(char[] inodes, EData[] eData)
 
 >程序中涉及到的数据结构如下：
 
-![](/img/dsGraphStructure.png)
-
 ```java
     //表示一个节点
     private class Vnode {

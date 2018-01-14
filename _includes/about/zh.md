@@ -1,8 +1,8 @@
-> 东西多了，就想沉淀  
+>学会总结 
 
-hey,我是julyerr，一名gopher，略懂docker、k8s等容器技术，目前在微服务大牛的修炼过程中。。。
-写blog不仅可完善系统知识架构，更是知识的分享,希望自己的blog能够让大家体验技术的快乐。
-![img](/img/tech-share.png)
+hey,我是julyerr，现阶段为实习准备中。后端、分布式系统、云计算等方面有所了解，编程语言java,golang,python
+等有所掌握，接下来将开始博客的总结之路.
+![img](/img/share.jpeg)
 
 
 <!-- ##### Talks
