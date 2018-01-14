@@ -1,0 +1,432 @@
+---
+layout:     post
+title:      "数据结构 图论基本算法"
+subtitle:   "图论基本算法"
+date:       2018-01-13 22:00:00
+author:     "julyerr"
+header-img: "img/dsGraph.jpg"
+header-mask: 0.5
+catalog:    true
+tags:
+    - ds
+    - graph
+---
+
+>图的存储结构中有两种：`邻接表`和`矩阵`。通常邻接表适用于边比较少的图中（**边多，查找效率低**），矩阵通常适用于比较稠密的图中（**边少浪费空间**）。
+
+>本文就邻接表存储图结构对图中比较重要的内容（`图构建`，`深度`、`广度遍历`，`dijstra算法`、`prim算法`以及`kruskal算法`进行介绍和代码实现`java`），水平有限,欢迎大家吐槽。主要内容参考[此文](http://wangkuiwu.github.io/2013/01/01/datastruct-index/) ，对原作者表示感谢。
+
+### 图构建
+- **初始化方式**
+    
+1. 让用户输入（比较繁琐）
+2. 根据领点数组、边数组自动进行构建
+    为了灵活，设置两种初始化方式：
+   
+```java
+public ListUdg() {}
+public ListUdg(char[] inodes, EData[] eData) 
+```
+
+- **ListUdg内部成员：**
+
+![](/img/dsGraphStructure.png)
+
+>程序中涉及到的数据结构如下：
+
+![](/img/dsGraphStructure.png)
+
+```java
+    //表示一个节点
+    private class Vnode {
+        char data;
+        Edge firstEdge;
+    }
+    //邻接边
+    private class Edge {
+        int index;
+        int weight;
+        Edge next;
+    }
+    //表示输入数据
+     private static class EData {
+        char start, end;
+        int weight;
+    }
+    //成员变量：
+    private Vnode[] Vnodes;
+    private Map<Character, Integer> map; //线性查找到Char对应的数组下标
+    private int edgeNumL; //记录图中总共的边数
+```    
+- **工具函数：**
+
+```
+    private char readChar() 
+    private int readInt()
+```
+
+- **初始化：**
+
+```java
+    //以数组构建为例，用户输入也是一致的：
+     public ListUdg(char[] inodes, EData[] eData) {
+     //初始化内部成员变量
+        int length = inodes.length;
+        map = new HashMap<>();
+        for (int i = 0; i < length; i++) {
+            map.put(inodes[i], i);
+        }
+        Vnodes = new Vnode[length];
+        for (int i = 0; i < length; i++) {
+            Vnodes[i] = new Vnode();
+            Vnodes[i].data = inodes[i];
+            Vnodes[i].firstEdge = null;
+        }
+        edgeNumL = eData.length;
+        //根据输入边，构建图结构
+        for (int i = 0; i < eData.length; i++) {
+            int index1 = map.get(eData[i].start);
+            int index2 = map.get(eData[i].end);
+            
+            //注意，无向图，边的末端对应的下标
+            Edge edge1 = new Edge(index2, eData[i].weight, null);
+            Edge edge2 = new Edge(index1, eData[i].weight, null);
+            
+            if (Vnodes[index1].firstEdge == null) {
+                Vnodes[index1].firstEdge = edge1;
+            } else {
+            //将连接的多条边，连接起来
+                linkEdge(Vnodes[index1].firstEdge, edge1);
+            }
+
+            if (Vnodes[index2].firstEdge == null) {
+                Vnodes[index2].firstEdge = edge2;
+            } else {
+                linkEdge(Vnodes[index2].firstEdge, edge2);
+            }
+        }
+    }
+    
+    //插入到末端即可
+    private void linkEdge(Edge list, Edge next) {
+        while (list.next != null) {
+            list = list.next;
+        }
+        list.next = next;
+    }
+
+```
+
+>编写打印函数，验证建表是否成功（具体代码参见）
+>初始化图如下：
+
+![](/img/dsGraphData.jpg)
+
+### 遍历方式
+
+- **广度遍历**
+ :  数据结构使用队列，邻接表已经将所有的连接边串起来，迭代next即可，注意将已遍历的点加入队列。队列使用array,设置head,rear两个游标。
+
+```java
+        public void bfs() {
+        int length = Vnodes.length;
+        int[] queue = new int[length];
+        int head = 0;
+        int rear = 0;
+        boolean[] visited = new boolean[length];
+        for (int i = 0; i < visited.length; i++) {
+            visited[i] = false;
+        }
+        System.out.println("BFS:");
+        for (int i = 0; i < length; i++) {
+            if (!visited[i]) {
+                visited[i] = true;
+                System.out.println("visited:" + Vnodes[i].data);
+                //访问之后，插入队列
+                queue[rear++] = i;
+            }
+
+            while (head != rear) {
+                int index = queue[head++];
+                Edge edge = Vnodes[i].firstEdge;
+                while (edge != null) {
+                    int tIndex = edge.index;
+                    if (!visited[tIndex]) {
+                        visited[tIndex] = true;
+                        System.out.println("visited:" + Vnodes[tIndex].data);
+                        //访问之后，插入队列
+                        queue[rear++] = tIndex;
+                    }
+                    edge = edge.next;
+                }
+            }
+        }
+        System.out.println();
+    }
+```    
+
+- **深度遍历**
+:   使用递归，同样设置visited数组表示访问情况
+
+```java        
+public void dfs() {
+        int length = Vnodes.length;
+        boolean[] visited = new boolean[length];
+        for (int i = 0; i < length; i++) {
+            visited[i] = false;
+        }
+        System.out.println("DFS:");
+        for (int i = 0; i < length; i++) {
+            if(!visited[i])
+                dfs(i, visited);
+        }
+        System.out.println();
+    }
+
+    private void dfs(int index, boolean[] visited) {
+        visited[index] = true;
+        System.out.println("visited:" + Vnodes[index].data);
+        Edge edge = Vnodes[index].firstEdge;
+        while (edge != null) {
+//            快速迭代完成
+            if (!visited[edge.index]) {
+                dfs(edge.index, visited);
+            }
+            edge = edge.next;
+        }
+    }
+```
+
+---
+
+## 图中比较重要的几种算法：
+
+### dijkstra算法
+    单源最短路径，给定起点，输出到所有其他的点最短的路径。
+
+**算法思路**
+
+>设置两个集合S和U,S中保存的是已经遍历过的点，U中是未遍历完成的（通过visited数组区分）；初始化S中只有起点，找到两集合之间最短距离，并将边的另一端加入集合S中，更新s到其他顶点的距离（两种情况，未达->可达，距离变短,(s,v)的距离可能大于(s,k)+(k,v)的距离。
+
+```java        
+    public void dijkstra(int vtex,int[] prev,int[] dist){
+    //初始化,visited数组和距离数组
+        int length = dist.length;
+        boolean[] visited = new boolean[length];
+        for (int i = 0; i < length; i++) {
+            visited[i] = false;
+            prev[i] = 0;
+            //获取相连边距离
+            dist[i] = getWeight(vtex,i);
+        }
+        visited[vtex] = true;
+        dist[vtex] = 0;
+        
+//        每次取出新的节点
+        int k = 0;
+        for (int i = 0; i < length - 1; i++) {
+//            取出最小距离的点
+            int min = INF;
+            for (int j = 0; j < length; j++) {
+                if(!visited[j] && dist[j] < min){
+                    min = dist[j];
+                    k = j;
+                }
+            }
+            visited[k] = true;
+
+//            对新加入的点进行距离更新
+            for (int j = 0; j < length; j++) {
+                int tmp = getWeight(k,j);
+                //防止运算溢出
+                tmp = (tmp == INF)?INF:(min+tmp);
+                if(!visited[j] && tmp < dist[j]){
+                //距离变短，更新前驱节点和距离
+                    prev[j] = k;
+                    dist[j] = tmp;
+                }
+            }
+        }
+        System.out.println("dist:");
+        for (int i = 0; i < dist.length; i++) {
+            System.out.print(dist[i]+"  ");
+        }
+        System.out.println();
+        System.out.println("prev:");
+        for (int i = 0; i < prev.length; i++) {
+            System.out.print(prev[i]+"  ");
+        }
+        System.out.println();
+        //根据前驱节点回溯，打印路径
+        for (int i = 0; i < length ; i++) {
+            if(i != vtex){
+                System.out.printf("%s -> %s distance:%d\n\t",Vnodes[vtex].data,Vnodes[i].data,dist[i]);
+//                output the path from the right --> left
+                System.out.print(Vnodes[i].data+"-->");
+                int pre = prev[i];
+                while(pre != vtex){
+                    System.out.printf("%s-->",Vnodes[pre].data);
+                    pre =  prev[pre];
+                }
+                System.out.printf("%s\n",Vnodes[vtex].data);
+            }
+        }
+    }    
+    
+    //相连边距离
+    private int getWeight(int start,int end){
+        Edge edge = Vnodes[start].firstEdge;
+        while(edge != null){
+            if(edge.index == end){
+                return edge.weight;
+            }
+            edge = edge.next;
+        }
+        return INF;
+    }
+```
+
+### prim算法
+    先介绍prim，prim算法在思想方法上和dijkstra很类似。
+
+**算法思路**
+>同样设置两个集合，点集合U(存放最小生成树中点），边集合（最小生成树边）； 从所有uЄU，vЄ(V-U)(V-U表示去除U的所有顶点)的边中选取权值最小的边(u,v)，将顶点v加入集合U中，将边(u,v)加入集合T中，如此不断重复，直到U=V为止，最小生成树构造完毕。
+
+```java    
+    public void prim(int start){
+    //初始化点集合和边集合
+        int length = Vnodes.length;
+        boolean[] visited = new boolean[length];
+        //为了方便打印路径，设置EData数组表示距离
+        EData[] eData = new EData[length];
+        for (int i = 0; i < length; i++) {
+            int tmp = getWeight(start,i);
+            eData[i] = new EData(Vnodes[start].data,Vnodes[i].data,tmp);
+        }
+        visited[start] = true;
+        //得到V-U中最短边的一端顶点
+        int u = getMin(visited,eData);
+        int sum = 0;
+        while(u != -1){
+        //加入集合U
+            visited[u] = true;
+            sum += eData[u].weight;
+            //进行调整
+            for (int i = 0; i < length; i++) {
+                int tmp = getWeight(u,i);
+                //集合V-U边的更新
+                if(!visited[i] && tmp < eData[i].weight){
+                    eData[i].weight = tmp;
+                    eData[i].start = Vnodes[u].data;
+                    eData[i].end = Vnodes[i].data;
+                }
+            }
+            u = getMin(visited,eData);
+        }
+        //输出路径信息
+        System.out.println("prim distance:");
+        for (int i = 0; i < length; i++) {
+            if(i != start){
+                System.out.printf("%s-->%s %d\n",eData[i].start,eData[i].end,eData[i].weight);
+            }
+        }
+        System.out.println("total :"+sum);
+    }    
+    //获取最短边
+    private int getMin(boolean[] visited,EData[] eData){
+        int index = -1;
+        int min = INF;
+        for (int i = 0; i < eData.length; i++) {
+            if(!visited[i] && eData[i].weight < min){
+                min = eData[i].weight;
+                index = i;
+            }
+        }
+        return index;
+    }
+```
+
+### kruskal算法
+    对所有的边进行从小到大排序，n个顶点中选择n-1条边，并保证这n-1条边不构成回路。
+>算法关键之处在于如何保证不构成回路，通过类似并查集(union-find)思路，将所有联通的路径端点的ends设置为同一个值,对于要加入的边，如果边两端的点vends相同说明已经有路径可达，没有必要添加此边。
+
+```java
+    //获取边集合,也可以保存用户输入或者初始化的边集合直接使用
+    private EData[] getEdata(){
+        EData[] edata = new EData[edgeNumL];
+        int index = 0;
+        for (int i = 0; i < Vnodes.length; i++) {
+            Edge edge = Vnodes[i].firstEdge;
+            while(edge!=null){
+            //去除无向图中的重复边，为边集排序准备
+                if(edge.index > i){
+                    edata[index++]= new EData(Vnodes[i].data,Vnodes[edge.index].data,edge.weight);
+                }
+                edge = edge.next;
+            }
+        }
+        return edata;
+    }
+    //对边集合进行排序，可以使用快排、堆排，这里为了方便直接冒泡排序
+    private void sortEdges(EData[] eData){
+        for (int i = 0; i < edgeNumL; i++) {
+            for (int j = i+1; j < edgeNumL; j++) {
+                if(eData[i].weight > eData[j].weight){
+                    EData tmp = eData[i];
+                    eData[i] = eData[j];
+                    eData[j] = tmp;
+                }
+            }
+        }
+    }
+    //算法实现
+    public void kruskal(){
+    //获取边集
+        EData[] edata = getEdata();
+    //边集排序
+        sortEdges(edata);
+    //递归追溯数组
+        int[] ends = new int[edgeNumL];
+    //最短边集    
+        EData[] ret = new EData[edgeNumL];
+        int index = 0;
+
+        for (int i = 0; i < edgeNumL; i++) {
+            EData tmp = edata[i];
+            int start = map.get(tmp.start);
+
+            int end = map.get(tmp.end);
+
+            int m = getEnd(ends,start);
+            int n = getEnd(ends,end);
+            //如果对应的ends值不同，需要添加此边
+            if(m!=n){
+                ends[m] = n;
+                ret[index++] = tmp;
+            }
+        }
+        //打印结果
+        int sum = 0;
+        System.out.println("krusal distance:");
+        for (int i = 0; i < index; i++) {
+            System.out.printf("%s -> %s:%d\n",ret[i].start,ret[i].end,ret[i].weight);
+            sum+= ret[i].weight;
+        }
+        System.out.println("total :"+sum);
+    }
+    //
+    private int getEnd(int[] ends,int index){
+        while(ends[index] != 0){
+            index = ends[index];
+        }
+        return index;
+    }
+```
+
+[完整代码](https://github.com/julyerr/algo/tree/master/src/com/julyerr/algo/graph)
+
+    本文只是基本实现，针对各个不同算法都有一定的改进版本，后面有时间再添加补充。
+
+**参考资料：**
+
+1. http://wangkuiwu.github.io/2013/01/01/datastruct-index/
