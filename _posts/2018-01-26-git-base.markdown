@@ -1,0 +1,182 @@
+---
+layout:     post
+title:      "git 基础入门"
+subtitle:   "git 基础入门"
+date:       2018-01-26 10:00:00
+author:     "julyerr"
+header-img: "img/git/git-base.jpg"
+header-mask: 0.5
+catalog: 	true
+tags:
+    - git
+    - tools
+---
+
+## git 和其他`VCS`比较
+- **工作原理不同**
+![文件快照](/img/git/git-image.png)
+	git直接记录文件快照
+![增量记录](/img/git/git-delta.png)
+    svn等增量记录
+
+- **发展趋势**
+>技术决定发展趋势。就当下而言，git已经成为程序员必备技能。当然还有很多人对使用版本控制软件有过很多讨论，如果有兴趣可以主要了解`SVN`,`hg`。知乎上相关讨论:
+    + SVN和git[讨论](https://www.zhihu.com/question/25491925)
+	+ hg和git [讨论](https://www.zhihu.com/question/21905835)
+<br/>**总结**:
+        svn在小团队使用还是比较方便的,hg虽然功能没有git强大，但是命令等比较简洁.
+    + git功能异常强大，加上github等开源社区推动，并且国内的一些招聘明确要求对git熟悉;因此git近几年肯定是工作和学习首选。
+	
+## 涉及到的内容
+- 基础使用:
+>建议理解工作原理之后，使用命令行进行操作，尽管有很多[图形化工具](https://my.oschina.net/amstrong/blog/159114)
+
+- github等开源平台
+    - github 使用
+    >github上免费用户的repo都是开源的，bitBucket上可以免费使用一个私人repo
+    - git pages 个人blog搭建（后面有时间会添加相应的blog介绍）
+- 服务器管理
+    - 搭建类似github的平台（gitlab，使用docker 快速搭建后面有时间会介绍)
+		github的统一主机的多用户使用
+	- 权限控制	
+
+
+
+## 基础使用
+
+### 工作原理	
+- **commitId**
+    每次提交生成40bit的SHA-1进行区分
+- **文件的三个分区**
+![git-zone](/img/git/git-zones.png)
+    对应的，文件也有三种状态：
+    - 已提交(committed)：文件已保存在本地数据库中
+    - 已修改(modified)：修改了某个文件，但还没有提交保存
+    - 已暂存(staged)：已修改的文件放在下次提交时要保存的清单中
+- **.git目录**
+    - 数据库
+![git-object](/img/git/git-object.png)
+        sha-1 的前两位创建了文件夹，剩下的38位为文件名。包含commit,tag,tree,blob等信息;可以简单理解它们之间的关系：项目对应一个目录tree，目录中有子目录tree和文件内容blob等
+    - 暂存区
+    ```git ls-files --stage     #查看的是.git/index文件
+    ```
+![git-index](/img/git/git-index.bmp)
+    进行commit的时候，利用暂存区内容生成tree对象保存到数据库中
+- **branch**
+    为了并行开发方便，设置不同的分支，互相不影响;不同分支之间可以merge 等操作(具体参看后文)。
+
+### 常见命令行使用
+- **配置信息**
+``` shell
+    #全局配置：对应~/.gitconfig文件
+	git config --global user.name  "your name"
+	git config --global user.email "your email"
+	
+	#个人配置: 对应.git/config文件
+	git config user.name "your name"
+	git config user.email "your email"
+```
+- **.gitignore文件**
+>为了忽略某些特殊文件（工程目录的输出等），在工程目录下向.gitignore文件中写入文件名（支持通配符），较常使用的格式别人已经整理好了(https://github.com/github/gitignore)
+- **三个区之间来回切换**
+![git-stages](/img/git/git-stages.png)
+    - **add**
+    ``` 
+        git add fileName  #添加指定文件
+        git add . | git add -A #添加所有文件
+	```	
+	
+    - **commit**
+    ```
+        git commit -m "Comment" # -m 直接添加注释信息
+	```			
+	- **reset**
+	   ```
+    	    git reset --fileName | git reset #从数据库恢复文件到stage区中
+	   ```
+	- **checkout**
+    ```
+        git checkout --fileName #从stage恢复文件到work directory区中
+		git checkout HEAD --files
+	```
+	
+- **几个常见命令**
+	- **diff**
+![git-diff](/img/git/git-diff.png)
+	具体用法
+	```
+		git diff 工作区和stage的比较
+		git diff branchName|HEAD 工作区和数据库比较
+		git diff --cached HEAD 数据库和stage的比较
+		git diff branchName1 branchName2 指定commit直接比较
+		git status 状态的修改信息
+    ```
+	- **commit**
+![commit-amend](/img/git/git-commit-amend.png)
+        ```
+            #撤销上一次提交，并且新提交一次,上次提交以来的修改不会提交
+			git commit -amend 
+		```	
+	- **checkout**
+		- 文件恢复
+		
+		```
+				git checkout --files #上文所述，stage -> work dir
+				git checkout HEAD~fileName # commit -> stage -> work dir 
+		```		
+		- 分支切换
+			新建或切换到相应的分支(master->dev)，stage和work directory均会发生更新
+		- detached 
+![checkout-detached](/img/git/git-checkout-detached.png)
+		   切换到标签、远程分支等得到detachedHEAD。在detached分支进行提交，不能保存到更新已经命名的分支，如果想进行保存需要生成一个新的分支保存。
+	- **reset**
+![git-reset](/img/git/git-reset.png)
+	当前分支指向另一个位置，选择性的更新工作目录和索引。指定分支或者默认分支HEAD，指定参数
+	    + --hard 工作目录也进行更新
+		+ --soft什么都不进行改变				
+		默认更新index目录
+	- **merge**
+		将不同的分支合并起来，存在三种情况：
+		- 另一个分支式是当前提交的祖父节点，合并之后什么都不做
+		- 当前提交是另一个分支的祖父节点，fast-forward		
+![merge-normal](/img/git/git-merge-normal.png)
+    两者执行过程一致的，只是前者针对的不同的对象而已(类似A,B分支，就A而言和就B而言的差别)
+		- 真正的合并
+![merge-real](/img/git/git-merge-real.png)
+		合并过程可能发生冲突，可能需要手动解决
+	- **cherry-pick**
+![checkPick](/img/git/git-cherryPick.png)
+		复制指定commitId在当前提交做一次完全一样的新提交
+	- **rebase**
+![git-rebase](/img/git/git-rebase.png)
+		衍合，线性化的cherry-pick。cherry-pick只能针对单个commit进行新的提交，rebase能够选择从某个commitId开始的一系列commitId
+![rebase-start](/img/git/git-rebase-start.png)
+    - **reset**
+    	直接回滚到相应的commit，与之类似的还有revert，两者区别如下
+![git-revert](/img/git/git-reset-revert.png)
+		针对远程的提交记录，尽量避免使用reset,操作可能丢失commit内容;<br/>revert将撤销视为一种变化，将撤销的内容作为一个提交，较为安全。
+					
+- **概念理解**
+	- 文件删除		
+	    
+	    ```
+	        git rm file #缓存区和本地目录同时删除
+			git rm --cached #从缓存区中删除
+		```
+	- **stash**
+		将修改后的文件暂时缓存起来，利于回滚和提交;需要的时候进行pop
+	- **fetch vs pull**
+		+ pull:自动将远程的分支合并到本地仓库中
+		+ fetch:只是将远程数据拉取到本地，可以选择手动进行合并
+	- **HEAD**
+		+ HEAD表示当前活跃的提交
+		+ HEAD~2 表示祖父commitId对象，等效于HEAD^^
+	- **git init --bare**
+		--bare参数表示新的repo中不建立work dir，从而不能直接在裸仓库上提交变更，通常作为远程中心仓库使用，可以被clone和push;git init 存在工作区，可以进行clone和push。详细[参见](https://segmentfault.com/a/1190000007686496)
+		
+	
+### 参考资料		
++ 图解git:http://blog.csdn.net/xiantian7/article/details/19048913
++ Git命令大全（Github):https://www.jianshu.com/p/97946d9df5bd
++ 浅析 Git 思想和工作原理:https://www.jianshu.com/p/619122f8747b	
++ 使用原理视角看 Git:https://coding.net/help/doc/practice/git-principle.html
