@@ -425,6 +425,5 @@ public void dfs() {
 
     本文只是基本实现，针对各个不同算法都有一定的改进版本，后面有时间再添加补充。
 
-**参考资料：**
-
-1. http://wangkuiwu.github.io/2013/01/01/datastruct-index/
+**参考资料**
+[数据结构与算法系列 目录(Category)](http://wangkuiwu.github.io/2013/01/01/datastruct-index/)

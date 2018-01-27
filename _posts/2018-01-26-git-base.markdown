@@ -92,7 +92,7 @@ tags:
 	```			
 	- **reset**
 	   ```
-    	    git reset --fileName | git reset #从数据库恢复文件到stage区中
+    	git reset --fileName | git reset #从数据库恢复文件到stage区中
 	   ```
 	- **checkout**
     ```
@@ -121,8 +121,8 @@ tags:
 		- 文件恢复
 		
 		```
-				git checkout --files #上文所述，stage -> work dir
-				git checkout HEAD~fileName # commit -> stage -> work dir 
+			git checkout --files #上文所述，stage -> work dir
+			git checkout HEAD~fileName # commit -> stage -> work dir 
 		```		
 		- 分支切换
 			新建或切换到相应的分支(master->dev)，stage和work directory均会发生更新
@@ -176,7 +176,7 @@ tags:
 		
 	
 ### 参考资料		
-+ 图解git:http://blog.csdn.net/xiantian7/article/details/19048913
-+ Git命令大全（Github):https://www.jianshu.com/p/97946d9df5bd
-+ 浅析 Git 思想和工作原理:https://www.jianshu.com/p/619122f8747b	
-+ 使用原理视角看 Git:https://coding.net/help/doc/practice/git-principle.html
++ [图解git](http://blog.csdn.net/xiantian7/article/details/19048913)
++ [Git命令大全（Github)](https://www.jianshu.com/p/97946d9df5bd)
++ [浅析 Git 思想和工作原理](https://www.jianshu.com/p/619122f8747b)	
++ [使用原理视角看 Git](https://coding.net/help/doc/practice/git-principle.html)
