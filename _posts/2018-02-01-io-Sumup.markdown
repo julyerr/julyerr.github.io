@@ -1,0 +1,154 @@
+---
+layout:     post
+title:      "java io纵览"
+subtitle:   "java io纵览"
+date:       2018-02-01 12:00:00
+author:     "julyerr"
+header-img: "img/lib/io.jpg"
+header-mask: 0.5
+catalog: 	true
+tags:
+    - io
+    - java
+---
+
+>`java io`中涉及的类比较多,我们不可能也不需要深入了解每一个类的作用和使用。
+本文针对比较常用的类使用进行说明，以后遇到其他的类只需要查api即可。
+
+![](/img/lib/io/Java-IO.png)
+    从图中看到其他的类基本都是从字节流和字符流派生出的子类
+
+#### 字节流
+- **InputStream(抽象类，输入流)**<br>
+	常见方法
+```java
+	int available()
+	void close()
+	int read()
+	int read(byte[] b)
+```			
+- **OutputStream(抽象类，输出流)**<br>
+	常见方法
+```java
+	void close()
+	void flush()
+	void write(byte[] b)	
+	void write(int b)
+```		
+- **常见子类及其方法**<br>
+	输入流和输出流绝大部分方法都是对应的，因此只以InputStream为例，不同之处也会针对性指明
+```java
+	FileInputStream  从本地文件读取数据
+	    FileInputStream(File file)
+	    
+	ByteArrayInputStream 从Byte数组读取数据
+
+	StringBufferInputStream 从StringBuffer读取数据,输入流特有
+	
+	PipedInputStream 管道中读取数据，通常用于不同线程之间通信
+	
+	SequenceInputStream 将多个流合并返回，输入流特有
+		SequenceInputStream(InputStream s1,InputStream s2)
+```
+`ObjectInputStream`和`FileterInputStream`的子类都是装饰流，可[参看](http://josh-persistence.iteye.com/blog/2064221)
+    
+```java
+	数据操作流 为方便对int、char等基础类型的操作而封装
+		DataInputStream(InputStream in)
+    		int readInt()
+    		char readChar()
+    		
+	回退流 能够把部分读取到的数据回退回去，输出流特有
+		void unread(int b)
+		void unread(byte[] b) 回退一个数组的数据到回退流中
+		
+	缓存流 磁盘操作效率比较低，内存缓存效率较高
+		BufferInputStream(InputStream in)	
+		
+	打印流	
+		PrintStream(File file)				
+		PrintStream(OutputStream out)
+		void println()
+```
+
+#### 字符流
+- **Reader(输入流，抽象类)**<br>
+	常见方法
+```java
+	void close()
+	int read()
+	int read(char[] cbuf)
+```		
+- **Writer(输出流，抽象类)**<br>
+    常见方法
+```java
+	void close()
+	void flush()
+	void write(String str)
+	void write(char[] cbuf)
+```		
+- **常见子类及其方法**<br>
+	和InputStream类似，输入字符流和输出字符流绝大部分是对应的，以输入字符流为例
+```java
+	BufferReader 对输入的字符流进行缓存
+	CharArrayReader 从字符数组读取流
+```
+
+#### 字节流和字符流的比较和转换
+- **比较**<br>
+	除了基本的操作方法不同之外，字符流提供了缓存而字节流没有提供缓存
+    ![](/img/lib/io/byte-char.jpeg)	
+- **转换**<br>
+```java
+	InputStreamReader : 字节到字符转换的桥梁
+		FileReader 子类
+	OutputStreamWriter： 字符到字节转换的桥梁
+		FileWriter 子类
+	eg:
+		使用InputStreamReader将System.in转变为字符流
+		Buffered buf = new BufferedReader(new InputStreamReader(System.in))	
+```
+
+#### 其他和流操作相关的类或接口
+- **Scanner**<br>
+	类似c语言中的scanf，可以实现格式化的输入<br>
+    常用方法
+```java
+    Scanner(InputStream source)
+    Scanner(File source)
+        boolean hasNextInt()
+        boolean hasNext(pattern)
+        String next()
+```
+- **File 类**<br>
+	常见方法
+```java
+	File(String pathname)
+    	boolean createNewFile() throws IOException
+    	boolean delete() 
+    	boolean exits()
+    	boolean isDirectory()
+    	long length()
+    	String[] list() 如果是目录，返回的目录下的文件名
+    	File[] listFiles() 如果是目录，返回的目录下的文件对象
+    	boolean mkdir()
+    	boolean renameTo(File dst)
+```		
+- **RandomAccessFile 类**<br>
+	常见方法
+```java
+	RandomAccessFile(File file,String mode)
+    	void close()
+    	int readInt(byte[] b)
+    	void writeInt(int v)
+    	byte readByte()
+    	int read(byte[] b)
+    	void writeBytes(String s)
+    	int skipByets(int n)
+    	void seek(long pos)	能够移动文件起始的读取位置
+```			
+
+
+### 参考资料
+- 《java入门实战经典》
+-  [Java IO流学习总结](http://www.cnblogs.com/oubo/archive/2012/01/06/2394638.html)
