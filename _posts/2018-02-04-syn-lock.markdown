@@ -1,0 +1,208 @@
+---
+layout:     post
+title:      "java 多线程同步和锁"
+subtitle:   "java 多线程同步和锁"
+date:       2018-02-05 12:00:00
+author:     "julyerr"
+header-img: "img/thread/syn-lock.jpg"
+header-mask: 0.5
+catalog:    true
+tags:
+    - java
+    - thread
+    - thread-advance
+---
+
+本文介绍的是java中对线程同步和锁等方面的支持，原理方面内容[参见](http://julyerr.club/2018/01/29/os-process-thread/#进程和线程互斥同步).
+
+### 基本概念
+- **可重入锁**<br>
+	锁的分配是根据线程分配的而不是基于方法调用的分配
+	```java
+		class MyClass {
+		    public synchronized void method1() {
+		        method2();
+		    }
+		     
+		    public synchronized void method2() {
+		         
+		    }
+		}
+	```
+	执行上面这段代码的线程，调用method1()之后直接可以执行method2(),而不用再申请锁.synchronized和ReentrantLock都是可重入锁。
+- **可中断锁**<br>
+	可以响应中断的锁，获取可中断锁的线程能够响应中断。synchronized不是可中断锁，Lock则是可中断锁，具体参见后文的lockInterruptibly()用法。
+- **公平锁**<br>
+	顾名思义，等待该锁时间越长的线程优先获取到该锁。通常公平锁的性能要比非公平锁低很多，前者内部需要维护等待线程队列。Lock的实现类`ReentrantLock(boolean fair)`通过传入的参数设置是否使用公平锁。
+
+---
+### synchronzied关键字
+- 如果synchronized(Class.class)或者synchronized修饰静态方法，同步的是该类的所有实例
+- 每个Object对象都内置锁，如果synchronized(this)或者synchronized修饰方法，同步的是同一个对象的所有synchronized代码段。
+	>对于父类的synchronized方法，子类需要重新声明synchronized才能表示一个同步代码段
+
+	```java
+	public class Synchronized implements Runnable {
+	    private static int count = 0;
+	    
+	    private void increase() {
+	        synchronized (this) {
+	            for (int i = 0; i < 3; i++) {
+	                try {
+	                    System.out.println(Thread.currentThread().getName() + " ：" + count++);
+	                    Thread.sleep(100);
+	                } catch (InterruptedException e) {
+	                    e.printStackTrace();
+	                }
+	            }
+	        }
+	    }
+
+	    private void printCount() {
+	        synchronized (this) {
+	            for (int i = 0; i < 3; i++) {
+	                try {
+	                    System.out.println(Thread.currentThread().getName() + " : " + count);
+	                    Thread.sleep(100);
+	                } catch (InterruptedException e) {
+	                    e.printStackTrace();
+	                }
+	            }
+	        }
+	    }
+
+	    @Override
+	    public void run() {
+	        String name = Thread.currentThread().getName();
+	        if (name.equals("t1")) {
+	            increase();
+	        } else {
+	            printCount();
+	        }
+	    }
+
+
+	    public static void main(String[] args) {
+	    	//同一个对象
+	        Synchronized myThread = new Synchronized();
+	        Thread t1 = new Thread(myThread, "t1");
+	        Thread t2 = new Thread(myThread, "t2");
+	        t1.start();
+	        t2.start();
+	    }
+	}
+	```
+
+
+### Lock
+java.util.concurrent.lock 中的Lock框架是锁定的一个抽象，可以使用多种方式实现lock。lock接口在synchronized基础上添加了`非阻塞锁`、`定时锁等候`和`可中断锁`等的一些特性。两个比较重要的实现类:
+
+- **重入锁(ReentrantLock)**
+    ```java
+    Lock lock  = new ReentrantLock();
+    lock.lock();
+    try{
+    //可能会出现线程安全的操作
+    }finally{
+    //一定在finally中释放锁
+    //也不能把获取锁在try中进行，因为有可能在获取锁的时候抛出异常
+      lock.ublock();
+    }
+    ```
+
+- **读写锁(ReadWriteLock)**
+	```java
+    public interface ReadWriteLock {
+		Lock readLock();
+		Lock writeLock();
+	}
+	```
+	
+	- 多个线程之间，读锁可以共享但是写锁是互斥的
+	- **读写锁的降级**<br>
+	    已经获取到写锁的前提之下再获取读锁。主要是为了保持数据的可见性(当然可以使用volatile关键字)：如果当前线程不获取读锁而直接释放写锁，如果此时另外一个线程获取了写锁并修改了数据，那么当前线程无法感知该线程的数据更新。
+
+- **lock常见接口方法**<br>
+	```java	
+    void lock()
+	void unlock()
+	boolean tryLock() 尝试非阻塞形式获取锁，获取到锁之后返回true
+	boolean tryLock(long time,TimeUnit unit) throws InterruptedException 在指定时间之内尝试获取锁
+	void lockInterruptibly() throws InterruptedException 获取中断锁
+    ```
+[可中断锁的demo](https://github.com/julyerr/collections/blob/master/java/src/com/julyerr/interviews/thread/InterruptedTest.java)		
+
+---
+### Condition
+>Condition可以替代传统线程间通信`wait/signal`,await()替代wait(),signal()替代notify(),用signalAll()替代notifyAll().
+**Condition的强大之处在于它可以为多个线程间建立不同的Condition**
+Condition是被绑定到Lock上的，要创建一个Lock的Condition必须用newCondition()方法。
+
+**简单示例(java.util.concurrent.ArrayBlockingQueue的功能)**
+
+```java
+class BoundedBuffer {
+   final Lock lock = new ReentrantLock();          //锁对象
+   final Condition notFull  = lock.newCondition(); //写线程锁
+   final Condition notEmpty = lock.newCondition(); //读线程锁
+
+   final Object[] items = new Object[100];//缓存队列
+   int putptr;  //写索引
+   int takeptr; //读索引
+   int count;   //队列中数据数目
+
+   //写
+   public void put(Object x) throws InterruptedException {
+     lock.lock(); //锁定
+     try {
+       // 如果队列满，则阻塞<写线程>
+       while (count == items.length) {
+         notFull.await(); 
+       }
+       // 写入队列，并更新写索引
+       items[putptr] = x; 
+       if (++putptr == items.length) putptr = 0; 
+       ++count;
+
+       // 唤醒<读线程>
+       notEmpty.signal(); 
+     } finally { 
+       lock.unlock();//解除锁定 
+     } 
+   }
+
+   //读 
+   public Object take() throws InterruptedException { 
+     lock.lock(); //锁定 
+     try {
+       // 如果队列空，则阻塞<读线程>
+       while (count == 0) {
+          notEmpty.await();
+       }
+
+       //读取队列，并更新读索引
+       Object x = items[takeptr]; 
+       if (++takeptr == items.length) takeptr = 0;
+       --count;
+
+       // 唤醒<写线程>
+       notFull.signal(); 
+       return x; 
+     } finally { 
+       lock.unlock();//解除锁定 
+     } 
+   } 
+}
+
+```
+
+
+[附上一道多线程面试的编程题](https://github.com/julyerr/collections/blob/master/java/src/com/julyerr/interviews/thread/PrintNumber.java)
+
+---
+### 参考资料		
+- [Java synchronized 关键字用法解析](https://juejin.im/entry/58070aabd20309006863772c)
+- [Java多线程编程专题总结](http://blog.csdn.net/shb_derek1/article/details/26929249)
+- [【Java线程】锁机制：synchronized、Lock、Condition](http://blog.csdn.net/vking_wang/article/details/9952063)
+- [Java中的锁-Lock接口解析](http://blog.csdn.net/canot/article/details/52050633)
+- [Java并发编程：Lock](https://www.cnblogs.com/dolphin0520/p/3923167.html)
