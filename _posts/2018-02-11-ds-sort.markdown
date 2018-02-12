@@ -1,0 +1,358 @@
+---
+layout:     post
+title:      "数据结构 常见排序算法总结"
+subtitle:   "常见排序算法总结"
+date:       2018-02-11 8:00:00
+author:     "julyerr"
+header-img: "img/ds/sort/sort-back.jpg"
+header-mask: 0.5
+catalog:    true
+tags:
+    - ds
+    - sort
+---
+
+
+>虽然很多编程语言内部已经封装好了排序算法，但是作为最基本的数据结构和算法之一，系统总结一下还是很有必要的。
+
+#### 各种排序算法性能比较
+![](/img/ds/sort/sort.jpg)
+	关于稳定性说明：
+		排序前后两个相等的数顺序不发生改变，如果Ai = Aj,Ai原来在位置前，排序后Ai还是要在Aj位置前。 
+
+
+#### 冒泡排序
+![](/img/ds/sort/bubble-sort.gif)
+	
+- 算法思路
+		针对数组中某个元素，将该元素之后的数组中更大的值往后面浮动
+- 实现代码
+```java
+public class BubbleSort {
+    public static void main(String[] args) {
+        int[] nums = new int[]{20,40,30,10,60,50};
+//        int[] nums = new int[]{1, 1, 1, 3, 3, 3, 2, 2, 2};
+        BubbleSort.bubbleSort(nums);
+        for (int i = 0; i < nums.length; i++) {
+            System.out.print(nums[i] + " ");
+        }
+        System.out.println();
+    }
+
+    public static void bubbleSort(int[] nums) {
+        if (nums == null || nums.length < 2) {
+            return;
+        }
+        int length = nums.length;
+        for (int i = length - 1; i > 0; i--) {
+            boolean sortEd = true;
+            for (int j = 0; j < i; j++) {
+                if (nums[j] > nums[j + 1]) {
+                    Utils.swap(nums, j, j + 1);
+                    sortEd = false;
+                }
+            }
+            if (sortEd) {
+                return;
+            }
+        }
+    }
+}
+```	
+#### 选择排序
+![](/img/ds/sort/select-sort.gif)
+
+- 算法思路
+	迭代整个数组，每次将最小的元素（相对未排序好的数组而言）插入到前面的位置
+- 实现代码
+```java
+public class SelectionSort {
+    public static void main(String[] args) {
+        int[] nums = new int[]{20, 40, 30, 10, 60, 50};
+//        int[] nums = new int[]{1, 1, 1, 3, 3, 3, 2, 2, 2};
+        SelectionSort.selectSort(nums);
+        for (int i = 0; i < nums.length; i++) {
+            System.out.print(nums[i] + " ");
+        }
+        System.out.println();
+    }
+
+    public static void selectSort(int[] nums) {
+        if (nums == null || nums.length < 2) {
+            return;
+        }
+        int length = nums.length;
+        for (int i = 0; i < length - 1; i++) {
+            int min = i;
+            for (int j = i + 1; j < length; j++) {
+                if (nums[min] > nums[j]) {
+                    min = j;
+                }
+            }
+            if (min != i) {
+                Utils.swap(nums, i, min);
+            }
+        }
+    }
+}
+```
+
+#### 插入排序
+[](/img/ds/sort/insert-sort.gif)
+
+- 算法思路
+针对数组中某个待比较的元素，该元素之前的数组已经排序好了，只需要将元素争取插入即可
+- 实现代码
+```java
+public class InsertSort {
+    public static void main(String[] args) {
+//        int[] nums = new int[]{20, 40, 30, 10, 60, 50};
+        int[] nums = new int[]{1, 1, 1, 3, 3, 3, 2, 2, 2};
+        InsertSort.insertSort(nums);
+        for (int i = 0; i < nums.length; i++) {
+            System.out.print(nums[i] + " ");
+        }
+        System.out.println();
+    }
+
+    public static void insertSort(int[] nums) {
+        if (nums == null || nums.length < 2) {
+            return;
+        }
+        int length = nums.length;
+        for (int i = 1; i < length; i++) {
+            int tmp = nums[i];
+            int j = i;
+            for (; j > 0 && tmp < nums[j - 1]; j--) {
+                nums[j] = nums[j - 1];
+            }
+            nums[j] = tmp;
+        }
+    }
+}
+```
+
+#### 希尔排序
+![](/img/ds/sort/shell-sort.gif)	
+	
+- 算法思路
+	实现思路类似插入排序，只是将整个数组划分为不同的部分，不同部分中元素（间隔为step）进行插入排序，然后递归将step不断变小直至为1（变为插入排序）
+- 实现算法
+```java
+public class ShellSort {
+    public static void main(String[] args) {
+        int[] nums = new int[]{20, 40, 30, 10, 60, 50};
+//        int[] nums = new int[]{1, 1, 1, 3, 3, 3, 2, 2, 2};
+        ShellSort.shellSort(nums);
+        for (int i = 0; i < nums.length; i++) {
+            System.out.print(nums[i] + " ");
+        }
+        System.out.println();
+    }
+
+    public static void shellSort(int[] nums) {
+        if (nums == null || nums.length < 2) {
+            return;
+        }
+        int length = nums.length;
+        int step = 1;
+        while (step < length / 3) {
+            step *= 3;
+        }
+//        递归减小step
+        while (step >= 1) {
+            for (int i = 0; i < step; i++) {
+//                针对每个间隔step的元素进行插入排序
+                for (int j = i + step; j < length; j += step) {
+                    int tmp = nums[j];
+                    int k = j;
+                    for (; k - step >= 0 && tmp < nums[k - step]; k -= step) {
+                        nums[k] = nums[k - step];
+                    }
+                    nums[k] = tmp;
+                }
+            }
+
+            step /= 3;
+        }
+    }
+}
+```
+#### 快速排序
+![](/img/ds/sort/quick-sort.gif)
+	
+- 算法思路：
+	选择数组中第一个元素作为基准(pivot)，调整之后使得左边的元素都不大于该基准，右边元素都不小于该基准;然后对左右两部分递归调整下去。
+- 实现代码
+```java
+public class QuickSort {
+    public static void main(String[] args) {
+//        int[] nums = new int[]{3,2,5,4,1};
+//        int[] nums = new int[]{1};
+        int[] nums = new int[]{1, 2, 2, 5, 5, 5, 3, 3};
+        QuickSort.quickSort(nums);
+        for (int i = 0; i < nums.length; i++) {
+            System.out.print(nums[i] + " ");
+        }
+        System.out.println();
+    }
+
+    public static void quickSort(int[] nums) {
+        if (nums == null || nums.length < 2) {
+            return;
+        }
+        qS(nums, 0, nums.length - 1);
+    }
+
+    private static void qS(int[] nums, int left, int right) {
+        if (left >= right) {
+            return;
+        }
+//        保留起始和结束位置
+        int begin = left;
+        int end = right;
+        //        基准
+        int tmp = nums[left];
+        while (left < right) {
+            while (left < right && nums[right] >= tmp) {
+                right--;
+            }
+            if (left < right) {
+                nums[left++] = nums[right];
+            }
+            while (left < right && nums[left] <= tmp) {
+                left++;
+            }
+            if (left < right) {
+                nums[right--] = nums[left];
+            }
+        }
+        nums[left] = tmp;
+        qS(nums, begin, left - 1);
+        qS(nums, left + 1, end);
+    }
+}
+```	
+
+#### 归并排序
+![](/img/ds/sort/merge-sort.gif)
+
+- 算法思路
+	整个数组不断进行划分到单个元素为止，然后将各个部分通过merge进行有序合并。
+- 实现代码
+```java
+public class MergeSort {
+    public static void main(String[] args) {
+//        int[] nums = new int[]{3, 2, 5, 4, 1};
+//        int[] nums = new int[]{1};
+        int[] nums = new int[]{1, 2, 2, 5, 5, 5, 3, 3};
+//        mergeSort(nums);
+        MergeSort.mergeSort(nums);
+        for (int i = 0; i < nums.length; i++) {
+            System.out.print(nums[i] + " ");
+        }
+        System.out.println();
+    }
+
+    public static void mergeSort(int[] nums) {
+        if (nums == null || nums.length < 2) {
+            return;
+        }
+        mergeCore(nums, 0, nums.length - 1);
+    }
+
+    //    数组分裂
+    private static void mergeCore(int[] nums, int left, int right) {
+        if (left >= right) {
+            return;
+        }
+        int mid = (left + right) >> 1;
+        mergeCore(nums, left, mid);
+        mergeCore(nums, mid + 1, right);
+//        数组合并
+        merge(nums, left, mid, right);
+    }
+
+    private static void merge(int[] nums, int begin, int mid, int end) {
+        int[] ret = new int[end - begin + 1];
+        int index = 0;
+        int left = begin;
+        int right = mid+1;
+        while (left <= mid && right <= end) {
+            if (nums[left] < nums[right]) {
+                ret[index++] = nums[left++];
+            } else {
+                ret[index++] = nums[right++];
+            }
+        }
+        while (left <= mid) {
+            ret[index++] = nums[left++];
+        }
+        while (right <= end) {
+            ret[index++] = nums[right++];
+        }
+        for (int i = begin; i <= end; i++) {
+            nums[i] = ret[i - begin];
+        }
+    }
+}
+```	
+
+#### 堆排序
+![](/img/ds/sort/heap-sort.gif)
+
+- 算法思路
+	根据数组构建大顶堆，每次交换root和数组中相对最后一个元素位置（会递减），然后对堆进行调整。
+- 代码实现
+```java
+public class HeapSort {
+    public static void main(String[] args) {
+//        int[] nums = new int[]{3, 2, 5, 4, 1};
+//        int[] nums = new int[]{1};
+        int[] nums = new int[]{1, 2, 2, 5, 5, 5, 3, 3};
+        HeapSort.heapSort(nums);
+        for (int i = 0; i < nums.length; i++) {
+            System.out.print(nums[i] + " ");
+        }
+        System.out.println();
+    }
+
+    public static void heapSort(int[] nums) {
+        if (nums == null || nums.length < 2) {
+            return;
+        }
+        int length = nums.length;
+//        构建最大堆
+        for (int i = length / 2; i >= 0; i--) {
+            heaprify(nums, i, length - 1);
+        }
+//        调整最后一个元素和root的值
+        for (int i = length - 1; i > 0; i--) {
+            Utils.swap(nums, 0, i);
+            heaprify(nums, 0, i - 1);
+        }
+    }
+
+    private static void heaprify(int[] nums, int start, int end) {
+        if (start >= end) {
+            return;
+        }
+        int left = start * 2 + 1;
+        int max = left;
+        if (left + 1 <= end && nums[left + 1] > nums[left]) {
+            max = left + 1;
+        }
+//        end the recurse
+        if (max > end || nums[start] >= nums[max]) {
+            return;
+        }
+        Utils.swap(nums, start, max);
+        heaprify(nums, max, end);
+    }
+}
+```
+	
+[完整代码](https://github.com/julyerr/algo/tree/master/src/com/julyerr/algo/sort)
+#### 参考资料
+- [数据结构与算法系列 目录(Category)](http://wangkuiwu.github.io/2013/01/01/datastruct-index/)
+- [常见排序算法总结与实现(冒泡、插入、选择、希尔、堆排序、归并、快排)](http://www.cnblogs.com/liuyang0/p/6560781.html)
