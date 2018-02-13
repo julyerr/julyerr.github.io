@@ -50,6 +50,8 @@ ArrayList,LinkedList,HahsMap等，推荐[blog](http://blog.csdn.net/column/detai
 	- 类加载机制
 	推荐[blog](http://www.hollischuang.com/archives/1001)
 
+- **常见设计模式**<br>
+	推荐[blog](http://www.hollischuang.com/archives/1368)
 ---
 #### 计算机基础知识
 >大学认真学习的话，这部分复习起来相对简单一点，但是要注意不能遗漏某些问题。比如数据库中乐观锁、悲观锁，LRU算法之类，如果提前没有复习到的话（或者根本不知道）被问及，真的是蒙逼，但是这些内容理解起来并不是很复杂。
