@@ -35,6 +35,20 @@ tags:
 - **公平锁**<br>
 	顾名思义，等待该锁时间越长的线程优先获取到该锁。通常公平锁的性能要比非公平锁低很多，前者内部需要维护等待线程队列。Lock的实现类`ReentrantLock(boolean fair)`通过传入的参数设置是否使用公平锁。
 
+- **自旋锁**<br>
+	部分共享数据的锁定只会持续很短的时间，与其让其他线程为了这段时间挂起和恢复现场（开销很大），还不如只让线程执行一个忙循环（自旋）一段时间之后再去尝试获锁。
+
+- **偏向锁**<br>
+	偏向锁偏向于第一个获取锁的线程，如果该锁没有被其他线程获取则持有偏向锁的线程将不需要同步，从而降低系统开销。当锁对象第一次被线程获取的时候，线程使用CAS操作把这个锁的线程ID记录在对象Mark Word之中，同时置偏向标志位1。以后该线程在进入和退出同步块时不需要进行CAS操作来加锁和解锁，只需要简单地测试一下对象头的Mark Word里是否存储着指向当前线程的偏向锁。详细参见[1](http://www.importnew.com/19472.html)和[2](http://www.cnblogs.com/wade-luffy/p/5969418.html)
+
+- **轻量级锁**<br>
+	如果CAS操作失败，表明另一个线程正在获取偏向锁。在恰当的时刻(safepoint，此时没有正在执行的字节码)，获取偏向锁线程被挂起，膨胀为轻量级锁(涉及Lock Record等操作)，继续执行同步代码。多个线程通过自旋来获取轻量级锁，自旋成功依然处于轻量级锁，失败则锁会膨胀为重量级锁。<br>
+绝大部分同步周期中不存在竞争，使用轻量级锁避免使用互斥量的开销，提高效率;在有竞争的情况下，除了互斥量开销，还额外发生了CAS操作，效率比重量级锁还更慢。
+
+- **重量级锁**<br>
+	重量级锁又称为监视器(monitor),除了具备Mutex互斥的功能，它还负责实现了Semaphore(信号量)的功能。它至少包含一个竞争锁的队列和一个信号阻塞队列（wait队列），前者负责做互斥，后一个用于做线程同步。
+
+
 ---
 ### synchronzied关键字
 - 如果synchronized(Class.class)或者synchronized修饰静态方法，同步的是该类的所有实例
@@ -206,3 +220,4 @@ class BoundedBuffer {
 - [【Java线程】锁机制：synchronized、Lock、Condition](http://blog.csdn.net/vking_wang/article/details/9952063)
 - [Java中的锁-Lock接口解析](http://blog.csdn.net/canot/article/details/52050633)
 - [Java并发编程：Lock](https://www.cnblogs.com/dolphin0520/p/3923167.html)
+- [Java中的锁](http://www.importnew.com/19472.html)
