@@ -43,6 +43,14 @@ bio 中recvfrom和copy datagram两个阶段均阻塞
 **notes**<br>
 	整个过程进行了两次系统调用(select,recvfrom)开销比较大,如果请求数量不是很多的话,select/epoll的web server不一定比使用multi-threading + blocking IO的web server性能更好.
 
+#### 信号驱动IO(SIGIO)	
+![](/img/lib/io/sigio.jpg)		
+
+- 对信号驱动IO安装信号驱动函数
+- 等待数据读取过程并不阻塞
+- 数据准备好时，线程会收到一个SIGIO信号，可在信号处理函数中调用I/O操作函数处理数据
+
+
 #### 异步IO(Asynchronous I/O)
 ![](/img/lib/io/aio.gif)		
 
@@ -59,6 +67,8 @@ jdk 1.4加入NIO对多路复用IO的支持
 jdk1.7 加入NIO2.0(AIO)对异步IO的实现
 	![](/img/lib/io/java-aio.png)
 
+#### 几种IO总结和比较
+![](/img/lib/io/io-compare.jpg)
 
 
 #### 参考资料
