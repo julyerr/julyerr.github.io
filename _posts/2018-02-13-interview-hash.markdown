@@ -87,7 +87,7 @@ public boolean containsNearbyDuplicate(int[] nums, int k) {
 }
 ```
 ---
-[Contains duplicate III使用treeSet题解](http://julyerr.club/2018/02/13/interview-set/#Contains-Duplicate-III)
+[Contains duplicate III使用treeSet题解](http://julyerr.club/2018/02/13/interview-set/#contains-duplicate-iii)
 
 ---
 ### 参考资料
