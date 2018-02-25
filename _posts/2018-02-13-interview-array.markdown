@@ -307,6 +307,132 @@ public List<Integer> majorityElement(int[] nums) {
 ```
 
 ---
+#### [Maximum Subarray](https://leetcode.com/problems/maximum-subarray/description/)
+解题思路
+curSum存储包含当下元素的最大数值和，即curSum = Math.max(curSum+nums[i],nums[i]);
+maxSum记录nums[i]更新过程中最大值作为返回值,maxSum = Math.max(maxSum,curSum).
+实现代码
+```java
+public int maxSubArray(int[] nums) {
+//        check validation,should not happen here
+    if (nums == null || nums.length == 0) {
+        return -1;
+    }
+    int curSum = nums[0];
+    int maxSum = nums[0];
+    for (int i = 1; i < nums.length; i++) {
+        //更新curSum 和 maxSum的值
+        curSum = Math.max(curSum + nums[i], nums[i]);
+        maxSum = Math.max(maxSum, curSum);
+    }
+    return maxSum;
+}
+```
+
+---
+#### [Maximum Product Subarray](https://leetcode.com/problems/maximum-product-subarray/description/)
+解题思路
+解题思路和上题类似，只是负数*负数=正数，因此需要保留最大和最小整数判断，具体参见实现代码
+实现代码
+```java
+public int maxProduct(int[] nums) {
+//      check validation , should not happend here
+    if (nums == null || nums.length == 0) {
+        return -1;
+    }
+    int curMax = nums[0];
+    int curMin = nums[0];
+    int max = curMax;
+    for (int i = 1; i < nums.length; i++) {
+        curMax *= nums[i];
+        curMin *= nums[i];
+//            大小改变需要交换
+        if (curMax < curMin) {
+            int t = curMax;
+            curMax = curMin;
+            curMin = t;
+        }
+        curMax = Math.max(curMax, nums[i]);
+        curMin = Math.min(curMin, nums[i]);
+        max = Math.max(max, curMax);
+    }
+    return max;
+}
+```
+
+---
+#### [Minimum Size Subarray Sum](https://leetcode.com/problems/minimum-size-subarray-sum/description/)
+解题思路
+通过设置start,end两个游标限制大于sum的范围，对于大于sum的情况，start++;对于小于sum情况，end++。
+实现代码
+```java
+public int minSubArrayLen(int s, int[] nums) {
+//        check validation
+    if (nums == null || nums.length == 0) {
+        return 0;
+    }
+    int min = Integer.MAX_VALUE;
+    int start = 0;
+    int sum = 0;
+//        end 就是 i
+    for (int i = 0; i < nums.length; i++) {
+        sum += nums[i];
+        if (sum >= s) {
+            while (sum - nums[start] >= s) {
+                sum -= nums[start++];
+            }
+            min = Math.min(min, i + 1 - start);
+        }
+    }
+    if (min > nums.length) {
+        return 0;
+    }
+    return min;
+}
+```
+
+---
+#### [Missing Number](https://leetcode.com/problems/missing-number/description/)
+解题思路
+由于n+1中取出n个数，显然缺少的数使得相邻两个数之间的差值为2,直接返回该数即可。
+参考别人实现思路，非常巧妙，利用m^n^n=m的特性，迭代一次就可以求出结果，具体参见实现代码。
+实现代码
+```java
+public int missingNumber(int[] nums) {
+//        check validation
+    if (nums == null || nums.length == 0) {
+        return -1;
+    }
+    int ret = nums.length;
+    for (int i = 0; i < nums.length; i++) {
+        ret ^= nums[i] ^ i;
+    }
+    return ret;
+}
+```
+
+---
+#### [Move Zeroes](https://leetcode.com/problems/move-zeroes/description/)
+解题思路
+原地进行操作，需要将非0的元素向前进行移动，后面元素全部置为0
+实现代码
+```java
+public void moveZeroes(int[] nums) {
+//        check validation
+    if (nums == null || nums.length == 0) {
+        return;
+    }
+    int index = 0;
+    for (int i = 0; i < nums.length; i++) {
+        if (nums[i] != 0) {
+            nums[index++] = nums[i];
+        }
+    }
+    for (int i = index; i < nums.length; i++) {
+        nums[i] = 0;
+    }
+}
+```
 
 
 ---

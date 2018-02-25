@@ -2,7 +2,7 @@
 layout:     post
 title:      "操作系统 内存管理"
 subtitle:   "操作系统 内存管理"
-date:       2018-02-23 12:00:00
+date:       2018-02-24 12:00:00
 author:     "julyerr"
 header-img: "img/os/mem/mm.png"
 header-mask: 0.5

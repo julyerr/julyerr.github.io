@@ -75,6 +75,36 @@ public int findMin(int[] nums) {
 ```
 
 ---
+#### [Merge Sorted Array](https://leetcode.com/problems/merge-sorted-array/description/)
+解题思路
+这道题关键是在原地实现merge sort，需要从后向前推进
+实现代码
+```java
+public void merge(int[] nums1, int m, int[] nums2, int n) {
+//        cursor
+    int index = m + n - 1;
+    m -= 1;
+    n -= 1;
+    while (m >= 0 && n >= 0) {
+        if (nums1[m] <= nums2[n]) {
+            nums1[index--] = nums2[n];
+            n--;
+        } else {
+            nums1[index--] = nums1[m];
+            m--;
+        }
+    }
+    while (m >= 0) {
+        nums1[index--] = nums1[m--];
+    }
+    while (n >= 0) {
+        nums1[index--] = nums2[n--];
+    }
+}
+```
+
+
+---
 ### 参考资料
 - [剑指offer（第二版）java实现导航帖](https://www.jianshu.com/p/010410a4d419)
 - [LeetCode题解](https://www.zybuluo.com/Yano/note/253649)
