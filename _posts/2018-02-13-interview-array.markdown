@@ -434,6 +434,119 @@ public void moveZeroes(int[] nums) {
 }
 ```
 
+---
+#### [Next Permutation](https://leetcode.com/problems/next-permutation/description/)
+解题思路
+题目意思就是数字字典序的全排，如果是最后一种排列则返回第一种排列方式。
+计算排列方式可以从后往前递推，实现代码[参考](http://blog.csdn.net/yano_nankai/article/details/49754925)
+实现代码
+```java
+public void nextPermutation(int[] nums) {
+//        check validation
+    if (nums == null || nums.length == 0) {
+        return;
+    }
+    int length = nums.length;
+    int p = 0;
+//        从右到左，找到第一个nums[i] < nums[i+1]的数
+    for (int i = length - 2; i >= 0; i--) {
+        if (nums[i] < nums[i + 1]) {
+            p = i;
+            break;
+        }
+    }
+
+    int q = 0;
+//        从右到左，找到第一个nums[i] > nums[p]
+    for (int i = length - 1; i >= 0; i--) {
+        if (nums[i] > nums[p]) {
+            q = i;
+            break;
+        }
+    }
+
+//        如果是最后一种排列情况
+    if (p == 0 && q == 0) {
+        reverse(nums, 0, length - 1);
+        return;
+    }
+
+//        swap p and q
+    int tmp = nums[p];
+    nums[p] = nums[q];
+    nums[q] = tmp;
+
+//        防止数组越界访问
+    if (p < length - 1) {
+        reverse(nums, p + 1, length - 1);
+    }
+}
+
+public static void reverse(int[] nums, int start, int end) {
+    while (start < end) {
+        int tmp = nums[start];
+        nums[start] = nums[end];
+        nums[end] = tmp;
+        start++;
+        end--;
+    }
+}
+```
+
+---
+#### [Pascal's Triangle](https://leetcode.com/problems/pascals-triangle/description/)
+解题思路
+通过pre数组迭代计算出下一个数组
+实现代码
+```java
+public List<List<Integer>> generate(int numRows) {
+    List<List<Integer>> rt = new ArrayList<>();
+    //        check validation
+    if (numRows < 1) {
+        return rt;
+    }
+
+//        pre
+    Integer[] pre = null;
+    for (int i = 1; i <= numRows; i++) {
+        Integer[] cur = new Integer[i];
+//            计算cur数组的值
+        cur[0] = 1;
+        cur[i - 1] = 1;
+        for (int j = 1; j < i - 1; j++) {
+            cur[j] = pre[j - 1] + pre[j];
+        }
+        rt.add(new ArrayList<>(Arrays.asList(cur)));
+//            更新pre
+        pre = cur;
+    }
+    return rt;
+}
+```
+
+---
+#### [Pascal's Triangle II](https://leetcode.com/problems/pascals-triangle-ii/description/)
+解题思路
+要求O(K)的空间复杂度，需要在原地迭代进行更新
+实现代码
+```java
+public List<Integer> getRow(int rowIndex) {
+//        check validation
+    Integer[] rt = new Integer[rowIndex + 1];
+    if (rowIndex < 0) {
+        return new ArrayList<Integer>(Arrays.asList(rt));
+    }
+
+//        fill values
+    Arrays.fill(rt, 1);
+    for (int i = 0; i < rowIndex - 1; i++) {
+        for (int j = i + 1; j >= 1; j--) {
+            rt[j] = rt[j - 1] + rt[j];
+        }
+    }
+    return new ArrayList<>(Arrays.asList(rt));
+}
+```
 
 ---
 #### 参考资料
