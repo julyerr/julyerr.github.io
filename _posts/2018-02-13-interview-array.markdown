@@ -549,6 +549,179 @@ public List<Integer> getRow(int rowIndex) {
 ```
 
 ---
+#### [Product of Array Except Self](https://leetcode.com/problems/product-of-array-except-self/description/)
+解题思路
+在O(n)时间复杂度和不能使用除法的情况下，通过设置right[]数组保存右边元素的乘积迭代结果，
+然后从左到右开始扫描计算即可，具体参见实现代码。
+实现代码
+```java
+public int[] productExceptSelf(int[] nums) {
+//        check validation
+    if (nums == null || nums.length == 0) {
+        return nums;
+    }
+    int length = nums.length;
+    int[] right = new int[length];
+//        保存从右到左的乘积结果
+    right[length - 1] = 1;
+    for (int i = length - 2; i >= 0; i--) {
+        right[i] = right[i + 1] * nums[i + 1];
+    }
+
+//        从左到右扫描
+    int left = nums[0];
+    for (int i = 1; i < length; i++) {
+        right[i] *= left;
+//            保存从左到右的乘积迭代结果
+        left *= nums[i];
+    }
+    return right;
+}
+```
+
+### Remove Duplicate
+#### [Remove Element](https://leetcode.com/problems/remove-element/description/)
+解题思路
+不等于给定元素的值直接添加进来
+实现代码
+```java
+public int removeElement(int[] nums, int val) {
+//        check validation
+    if (nums == null || nums.length < 1) {
+        return 0;
+    }
+    int index = 0;
+    for (int i = 0; i < nums.length; i++) {
+        if (nums[i] != val) {
+            nums[index++] = nums[i];
+        }
+    }
+    return index + 1;
+}
+```
+
+---
+#### [Rotate Array](https://leetcode.com/problems/rotate-array/description/)
+解题思路
+在原地实现数组反转，这道题是比较经典的技巧题。通过对不同部分的分别反转，然后整个数组反转即可。
+实现代码
+```java
+public void rotate(int[] nums, int k) {
+//    check validation
+    if (nums == null || nums.length < 2 || k < 1) {
+        return;
+    }
+    int length = nums.length;
+//        提高反转效率
+    k = k % length;
+
+//   反转前一部分
+    rotate(nums, 0, length - 1 - k);
+//   反转后一部分    
+    rotate(nums, length - k, length - 1);
+//   反转整个数组
+    rotate(nums, 0, length - 1);
+}
+
+private static void rotate(int[] nums, int start, int end) {
+    while (start < end) {
+        int t = nums[start];
+        nums[start] = nums[end];
+        nums[end] = t;
+        start++;
+        end--;
+    }
+}
+```
+
+---
+#### [Remove Duplicates from Sorted Array](https://leetcode.com/problems/remove-duplicates-from-sorted-array/description/)
+解题思路
+设置index，从左到右将相邻不相等的元素添加进来
+实现代码
+```java
+public int removeDuplicates(int[] nums) {
+//        check validation
+    if (nums == null || nums.length < 2) {
+        return nums.length;
+    }
+    int index = 0;
+    for (int i = 1; i < nums.length; i++) {
+        if (nums[index] != nums[i]) {
+            nums[++index] = nums[i];
+        }
+    }
+    return index + 1;
+}
+```
+
+---
+#### [Remove Duplicates from Sorted Array II](https://leetcode.com/problems/remove-duplicates-from-sorted-array-ii/description/)
+解题思路
+解题思路和上题基本类似，只不过需要重复间隔的两个元素是否相等
+实现代码
+```java
+public int removeDuplicates(int[] nums) {
+//        check validation
+    if (nums == null || nums.length < 3) {
+        return nums.length;
+    }
+    int index = 0;
+    for (int i = 2; i < nums.length; i++) {
+//            是否超过2个元素相等
+        if (!(nums[i] == nums[index] && nums[i] == nums[index-1])) {
+            nums[++index] = nums[i];
+        }
+    }
+    return index + 1;
+}
+```
+
+---
+#### [Roate Image](https://leetcode.com/problems/rotate-image/description/)
+解题思路
+如果按照传统的循环迭代进行元素交换的话，效率比较低。
+此题也是比较经典的技巧性题，通过先对角线元素交换后中线交换得到结果。
+![](/img/ds/array/rotateImage.png)
+实现代码
+```java
+ public void rotate(int[][] matrix) {
+//        check validation
+    if (matrix == null || matrix.length < 2 || matrix[0] == null || matrix[0].length < 2) {
+        return;
+    }
+
+    int mx = matrix.length;
+    int my = matrix[0].length;
+//        对角线交换
+    int mY = my - 1;
+    for (int i = 0; i < mx - 1; i++) {
+        for (int j = 0; j < mY; j++) {
+            int newX = my - 1 - j;
+            int newY = mx - 1 - i;
+
+            int t = matrix[i][j];
+            matrix[i][j] = matrix[newX][newY];
+            matrix[newX][newY] = t;
+        }
+        mY--;
+    }
+
+//        进行中线交换
+    int xLen = mx / 2;
+    for (int i = 0; i < xLen; i++) {
+        for (int j = 0; j < my; j++) {
+            int newX = mx - 1 - i;
+
+            int t = matrix[i][j];
+            matrix[i][j] = matrix[newX][j];
+            matrix[newX][j] = t;
+        }
+    }
+}
+```
+
+---
 #### 参考资料
 - [剑指offer（第二版）java实现导航帖](https://www.jianshu.com/p/010410a4d419)
 - [LeetCode题解](https://www.zybuluo.com/Yano/note/253649)
