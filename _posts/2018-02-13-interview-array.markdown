@@ -118,7 +118,7 @@ public int maxProfit(int[] prices) {
 #### [Best Time to Buy and Sell Stock II](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-ii/description/)
 **解题思路**<br>
 只需要每次交易有利润可赚就行<br>
-**实现代码**
+**实现代码**<br>
 ```java
 public int maxProfit(int[] prices) {
 //  check validation
@@ -138,10 +138,10 @@ public int maxProfit(int[] prices) {
 
 ---
 #### [Game of Life](https://leetcode.com/problems/game-of-life/description/)
-解题思路
+**解题思路**<br>
 题目关键是实现原地的同时更新，因此，只能在原来的空间记录变化值，同时该变化值不会对其他元素的记录产生影响。
 考虑+10 和 %10 的关系，前者+10把原来的值发生了变化，但是对后者的%10没有产生影响，利用该特性，具体参看实现代码。
-实现代码
+**实现代码**<br>
 ```java
 static int n, m;
 
@@ -197,10 +197,10 @@ private static int calc(int[][] board, int x, int y) {
 
 ---
 #### [Jump Game](https://leetcode.com/problems/jump-game/description/)
-解题思路
+**解题思路**<br>
 在跳及范围之内，尽量选择最大的step，如果maxStep大于数组的长度，说明一定存在一种方式跳出。
 不断更新step的值，maxStep = Math.max(maxStep,nums[i]+i) 
-实现代码
+**实现代码**<br>
 ```java
 public boolean canJump(int[] nums) {
 //        check validation
@@ -226,9 +226,9 @@ public boolean canJump(int[] nums) {
 
 ---
 #### [Majority Element](https://leetcode.com/problems/majority-element/description/)
-解题思路
+**解题思路**<br>
 此题通过肯定是没有问题的，关键是利用O(n)空间复杂度和O(1)时间复杂度，也是一个比较典型面试试题。
-实现代码
+**实现代码**<br>
 ```java
 public int majorityElement(int[] nums) {
 //        check validation,should not happen here
@@ -252,9 +252,9 @@ public int majorityElement(int[] nums) {
 
 ---
 #### [Major Element II](https://leetcode.com/problems/majority-element-ii/description/)
-解题思路
+**解题思路**<br>
 解题思路和上题有点类似，超过[n/3]次数的元素最多2个
-实现代码
+**实现代码**<br>
 ```java
 public List<Integer> majorityElement(int[] nums) {
     List<Integer> rt = new ArrayList<>();
@@ -308,10 +308,10 @@ public List<Integer> majorityElement(int[] nums) {
 
 ---
 #### [Maximum Subarray](https://leetcode.com/problems/maximum-subarray/description/)
-解题思路
+**解题思路**<br>
 curSum存储包含当下元素的最大数值和，即curSum = Math.max(curSum+nums[i],nums[i]);
 maxSum记录nums[i]更新过程中最大值作为返回值,maxSum = Math.max(maxSum,curSum).
-实现代码
+**实现代码**<br>
 ```java
 public int maxSubArray(int[] nums) {
 //        check validation,should not happen here
@@ -331,9 +331,9 @@ public int maxSubArray(int[] nums) {
 
 ---
 #### [Maximum Product Subarray](https://leetcode.com/problems/maximum-product-subarray/description/)
-解题思路
+**解题思路**<br>
 解题思路和上题类似，只是负数*负数=正数，因此需要保留最大和最小整数判断，具体参见实现代码
-实现代码
+**实现代码**<br>
 ```java
 public int maxProduct(int[] nums) {
 //      check validation , should not happend here
@@ -362,9 +362,9 @@ public int maxProduct(int[] nums) {
 
 ---
 #### [Minimum Size Subarray Sum](https://leetcode.com/problems/minimum-size-subarray-sum/description/)
-解题思路
+**解题思路**<br>
 通过设置start,end两个游标限制大于sum的范围，对于大于sum的情况，start++;对于小于sum情况，end++。
-实现代码
+**实现代码**<br>
 ```java
 public int minSubArrayLen(int s, int[] nums) {
 //        check validation
@@ -393,10 +393,10 @@ public int minSubArrayLen(int s, int[] nums) {
 
 ---
 #### [Missing Number](https://leetcode.com/problems/missing-number/description/)
-解题思路
+**解题思路**<br>
 由于n+1中取出n个数，显然缺少的数使得相邻两个数之间的差值为2,直接返回该数即可。
 参考别人实现思路，非常巧妙，利用m^n^n=m的特性，迭代一次就可以求出结果，具体参见实现代码。
-实现代码
+**实现代码**<br>
 ```java
 public int missingNumber(int[] nums) {
 //        check validation
@@ -413,9 +413,9 @@ public int missingNumber(int[] nums) {
 
 ---
 #### [Move Zeroes](https://leetcode.com/problems/move-zeroes/description/)
-解题思路
+**解题思路**<br>
 原地进行操作，需要将非0的元素向前进行移动，后面元素全部置为0
-实现代码
+**实现代码**<br>
 ```java
 public void moveZeroes(int[] nums) {
 //        check validation
@@ -436,10 +436,10 @@ public void moveZeroes(int[] nums) {
 
 ---
 #### [Next Permutation](https://leetcode.com/problems/next-permutation/description/)
-解题思路
+**解题思路**<br>
 题目意思就是数字字典序的全排，如果是最后一种排列则返回第一种排列方式。
 计算排列方式可以从后往前递推，实现代码[参考](http://blog.csdn.net/yano_nankai/article/details/49754925)
-实现代码
+**实现代码**<br>
 ```java
 public void nextPermutation(int[] nums) {
 //        check validation
@@ -495,9 +495,9 @@ public static void reverse(int[] nums, int start, int end) {
 
 ---
 #### [Pascal's Triangle](https://leetcode.com/problems/pascals-triangle/description/)
-解题思路
+**解题思路**<br>
 通过pre数组迭代计算出下一个数组
-实现代码
+**实现代码**<br>
 ```java
 public List<List<Integer>> generate(int numRows) {
     List<List<Integer>> rt = new ArrayList<>();
@@ -526,9 +526,9 @@ public List<List<Integer>> generate(int numRows) {
 
 ---
 #### [Pascal's Triangle II](https://leetcode.com/problems/pascals-triangle-ii/description/)
-解题思路
+**解题思路**<br>
 要求O(K)的空间复杂度，需要在原地迭代进行更新
-实现代码
+**实现代码**<br>
 ```java
 public List<Integer> getRow(int rowIndex) {
 //        check validation
@@ -550,10 +550,10 @@ public List<Integer> getRow(int rowIndex) {
 
 ---
 #### [Product of Array Except Self](https://leetcode.com/problems/product-of-array-except-self/description/)
-解题思路
+**解题思路**<br>
 在O(n)时间复杂度和不能使用除法的情况下，通过设置right[]数组保存右边元素的乘积迭代结果，
 然后从左到右开始扫描计算即可，具体参见实现代码。
-实现代码
+**实现代码**<br>
 ```java
 public int[] productExceptSelf(int[] nums) {
 //        check validation
@@ -581,9 +581,9 @@ public int[] productExceptSelf(int[] nums) {
 
 ### Remove Duplicate
 #### [Remove Element](https://leetcode.com/problems/remove-element/description/)
-解题思路
+**解题思路**<br>
 不等于给定元素的值直接添加进来
-实现代码
+**实现代码**<br>
 ```java
 public int removeElement(int[] nums, int val) {
 //        check validation
@@ -602,9 +602,9 @@ public int removeElement(int[] nums, int val) {
 
 ---
 #### [Rotate Array](https://leetcode.com/problems/rotate-array/description/)
-解题思路
+**解题思路**<br>
 在原地实现数组反转，这道题是比较经典的技巧题。通过对不同部分的分别反转，然后整个数组反转即可。
-实现代码
+**实现代码**<br>
 ```java
 public void rotate(int[] nums, int k) {
 //    check validation
@@ -636,9 +636,9 @@ private static void rotate(int[] nums, int start, int end) {
 
 ---
 #### [Remove Duplicates from Sorted Array](https://leetcode.com/problems/remove-duplicates-from-sorted-array/description/)
-解题思路
+**解题思路**<br>
 设置index，从左到右将相邻不相等的元素添加进来
-实现代码
+**实现代码**<br>
 ```java
 public int removeDuplicates(int[] nums) {
 //        check validation
@@ -657,9 +657,9 @@ public int removeDuplicates(int[] nums) {
 
 ---
 #### [Remove Duplicates from Sorted Array II](https://leetcode.com/problems/remove-duplicates-from-sorted-array-ii/description/)
-解题思路
+**解题思路**<br>
 解题思路和上题基本类似，只不过需要重复间隔的两个元素是否相等
-实现代码
+**实现代码**<br>
 ```java
 public int removeDuplicates(int[] nums) {
 //        check validation
@@ -679,11 +679,11 @@ public int removeDuplicates(int[] nums) {
 
 ---
 #### [Roate Image](https://leetcode.com/problems/rotate-image/description/)
-解题思路
+**解题思路**<br>
 如果按照传统的循环迭代进行元素交换的话，效率比较低。
 此题也是比较经典的技巧性题，通过先对角线元素交换后中线交换得到结果。
 ![](/img/ds/array/rotateImage.png)
-实现代码
+**实现代码**<br>
 ```java
  public void rotate(int[][] matrix) {
 //        check validation
@@ -720,6 +720,185 @@ public int removeDuplicates(int[] nums) {
     }
 }
 ```
+
+---
+#### [Set Matrix Zeroes](https://leetcode.com/problems/set-matrix-zeroes/description/)
+**解题思路**
+此题要求的是原地实现矩阵置零操作，依据的原来矩阵中零的位置而不是新增的零；
+因此需要设置标志位，可以将首行和首列作为标志位，同时对首行、首列设置额外进行标志位判断，[具体参考](http://fisherlei.blogspot.kr/2013/01/leetcode-set-matrix-zeroes.html)。<br>
+**实现代码**
+```java
+public void setZeroes(int[][] matrix) {
+//        check validation
+    if (matrix == null || matrix.length == 0 || matrix[0] == null || matrix[0].length == 0) {
+        return;
+    }
+
+    int rows = matrix.length;
+    int cols = matrix[0].length;
+
+    boolean xFlag, yFlag;
+    xFlag = yFlag = false;
+
+//        对第一行、第一列设置标志位
+    for (int i = 0; i < cols; i++) {
+        if (matrix[0][i] == 0) {
+            yFlag = true;
+            break;
+        }
+    }
+
+    for (int i = 0; i < rows; i++) {
+        if (matrix[i][0] == 0) {
+            xFlag = true;
+            break;
+        }
+    }
+
+
+//        设置矩阵中其他元素标志位
+    for (int i = 1; i < rows; i++) {
+        for (int j = 1; j < cols; j++) {
+            if (matrix[i][j] == 0) {
+                matrix[i][0] = 0;
+                matrix[0][j] = 0;
+            }
+        }
+    }
+
+//        除了首行、首列之外的置零操作
+    for (int i = 1; i < rows; i++) {
+        if (matrix[i][0] == 0) {
+            for (int j = 0; j < cols; j++) {
+                matrix[i][j] = 0;
+            }
+        }
+    }
+
+    for (int i = 0; i < cols; i++) {
+        if (matrix[0][i] == 0) {
+            for (int j = 0; j < rows; j++) {
+                matrix[j][i] = 0;
+            }
+        }
+    }
+
+//        首行、首列的置零操作
+    if (yFlag) {
+        for (int i = 0; i < cols; i++) {
+            matrix[0][i] = 0;
+        }
+    }
+
+    if (xFlag) {
+        for (int i = 0; i < rows; i++) {
+            matrix[i][0] = 0;
+        }
+    }
+
+}
+```
+
+---
+### Spiral Matrix
+#### [Spiral Matrix](https://leetcode.com/problems/spiral-matrix/description/)
+**解题思路**
+只需要按照对应的螺旋顺序添加元素，同时需要注意边界条件的判断，例如重复元素的添加<br>
+**实现代码**
+```java
+public List<Integer> spiralOrder(int[][] matrix) {
+        List<Integer> rt = new ArrayList<>();
+    //        check validation
+    if (matrix == null || matrix.length == 0 ||  matrix[0] == null || matrix[0].length == 0) {
+        return rt;
+    }
+
+//        设置循环边界条件
+    int xStart = 0;
+    int xEnd = matrix.length - 1;
+    int yStart = 0;
+    int yEnd = matrix[0].length - 1;
+
+    while (xStart <= xEnd && yStart <= yEnd) {
+//            上面一行
+        for (int i = yStart; i <= yEnd; i++) {
+            rt.add(matrix[xStart][i]);
+        }
+//            右边一行
+        for (int i = xStart + 1; i <= xEnd; i++) {
+            rt.add(matrix[i][yEnd]);
+        }
+
+//            遍历完成
+        if (xStart == xEnd || yStart == yEnd) {
+            break;
+        }
+        //            下面一行
+        for (int i = yEnd-1; i >= yStart; i--) {
+            rt.add(matrix[xEnd][i]);
+        }
+//            左边一行
+        for (int i = xEnd - 1; i > xStart; i--) {
+            rt.add(matrix[i][xStart]);
+        }
+
+        xStart++;
+        xEnd--;
+        yStart++;
+        yEnd--;
+    }
+    return rt;
+}
+```
+
+#### [Spiral Matrix II](https://leetcode.com/problems/spiral-matrix-ii/description/)
+**解题思路**
+实现思路和上题基本类似，只不过通过nums++的方式赋值<br>
+**实现代码**
+```java
+public int[][] generateMatrix(int n) {
+//        check validation
+    if (n < 1) {
+        return new int[][]{};
+    }
+
+    int[][] ret = new int[n][n];
+    int startX = 0;
+    int startY = 0;
+    int endX = n - 1;
+    int endY = n - 1;
+    int index = 1;
+    while (startX <= endX && startY <= endY) {
+//            最上面一行
+        for (int i = startY; i <= endY; i++) {
+            ret[startX][i] = index++;
+        }
+//            最右面一行
+        for (int i = startX + 1; i <= endX; i++) {
+            ret[i][endY] = index++;
+        }
+//            是否可以结束循环
+        if (startX == endX || startY == endY) {
+            break;
+        }
+//            最下面一行
+        for (int i = endY - 1; i >= startY; i--) {
+            ret[endX][i] = index++;
+        }
+//            最左面一行
+        for (int i = endX - 1; i > startX; i--) {
+            ret[i][startY] = index++;
+        }
+        startX++;
+        startY++;
+        endX--;
+        endY--;
+    }
+    return ret;
+}
+```
+
+
 
 ---
 #### 参考资料

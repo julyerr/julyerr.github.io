@@ -18,7 +18,7 @@ tags:
 #### [Longest Substring Without Repeating Characters](https://leetcode.com/problems/longest-substring-without-repeating-characters/description/)
 **解题思路**<br>
 通过hash方法维护一个滑动窗口，窗口中保存的是当下最长的无重复字符串，每次比较更新即可。<br>
-**实现代码**
+**实现代码**<br>
 ```java
 public int lengthOfLongestSubstring(String s) {
 //        check validation

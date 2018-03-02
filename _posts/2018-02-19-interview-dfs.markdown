@@ -19,7 +19,7 @@ tags:
 #### [Combination Sum](https://leetcode.com/problems/combination-sum/description/)
 **解题思路**<br>
 深度遍历元素的所有可能组合方式<br>
-**实现代码**
+**实现代码**<br>
 ```java
 static List<List<Integer>> rt;
 static int[] candidate;
@@ -63,7 +63,7 @@ private static void dfs(int start, int target, List<Integer> cur) {
 #### [Combination Sum III](https://leetcode.com/problems/combination-sum-iii/description/)
 **解题思路**<br>
 和Combination Sum II类似，只不过现在选择元素限制在1-9之间<br>
-**实现代码**
+**实现代码**<br>
 ```
 static List<List<Integer>> rt;
 public List<List<Integer>> combinationSum3(int k, int n) {

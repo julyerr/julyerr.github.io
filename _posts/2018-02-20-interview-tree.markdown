@@ -22,7 +22,7 @@ tags:
 leetcode上说明了`You may assume that duplicates do not exist in the tree.`;
 如果tree中出现了duplicates，需要特殊处理。下面的这种解法适合出现[重复的现象](https://www.nowcoder.com/practice/8a19cbe657394eeaac2f6ea9b0f6fcf6)。
 设置pre、in数组的start,end限制元素选取范围。<br>
-**实现代码**
+**实现代码**<br>
 ```java
 public TreeNode buildTree(int[] preorder, int[] inorder) {
 //        check validation

@@ -10,6 +10,7 @@ catalog:    true
 tags:
     - web
     - spring
+    - IoC
 ---
 
 >spring ioc是spring框架的核心之处，本文就IOC的实现原理和IOC在spring应用进行总结,很多内容参考[1]和[2],原作者总结很不错。
@@ -106,7 +107,7 @@ BeanFactory 是面向Spring本身的基础设施，ApplicationContext面向开�
 #### 不同方式配置bean比较
 spring提供了基于XML、基于注解、基于JAVA类、基于Groovy四种方式配置bean
 
-- 基于XML配置 Bean实现类来源于第三方类库，如DataSource，JdbcTemplate等，类中注解和代码耦合性过高，为了维护和升级方便，通过XML配置方式较好；命名空间的配置，如aop、context等，只能采用基于XML的配置
+- 基于XML配置 Bean实现类来源于第三方类库，如DataSource，JdbcTemplate等，类中注解和代码耦合性过高，为了维护和升级方便，通过XML配置方式较好;
 - 基于注解配置 Bean的实现类是当前项目开发的，可以直接在Java类中使用基于注解的配置
 - 基于Java类配置 可以通过代码方式控制Bean初始化的整体逻辑，适用于Bean实例化逻辑比较复杂的情况中
 - 基于Groovy的配置 通过Groovy脚本灵活控制Bean初始化的过程，适用于bean逻辑较为复杂的情况当中

@@ -18,7 +18,7 @@ tags:
 #### [Contains-Duplicate-III](https://leetcode.com/problems/contains-duplicate-iii/description/)
 **解题思路**<br>
 nums[i]和nums[j]之间的差距最大为t,i和j最大差距为k；通过维持最小和最大差距为2t的集合，必要时将下标差距大于k的元素移除，具体参见实现代码<br>
-**实现代码**
+**实现代码**<br>
 ```java
 public boolean containsNearbyAlmostDuplicate(int[] nums, int k, int t) {
 //        check validation

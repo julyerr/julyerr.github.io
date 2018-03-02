@@ -18,7 +18,7 @@ tags:
 #### [Two-Sum](https://leetcode.com/problems/two-sum/description/)
 **解题思路**<br>
      和为定值，只有一个解;使用hash，map.put(sum-num[i],i)，然后判断是否存在num[i]的key;存在即可返回，注意不能是本身.<br>
-**实现代码**
+**实现代码**<br>
 ```java
 public int[] twoSum(int[] nums, int target) {
 //        check validation
@@ -46,7 +46,7 @@ public int[] twoSum(int[] nums, int target) {
 #### [Contains Duplicate](https://leetcode.com/problems/contains-duplicate/description/)
 **解题思路**<br>
 使用hash判断是否已经存在相同元素即可<br>
-**实现代码**
+**实现代码**<br>
 ```java
 public boolean containsDuplicate(int[] nums) {
 //         check validation
@@ -69,7 +69,7 @@ public boolean containsDuplicate(int[] nums) {
 **解题思路**<br>
 使用hash记录出现情况，对于出现多次的元素判断下标之差是否小于等于k<br>
 
-**实现代码**
+**实现代码**<br>
 ```java
 public boolean containsNearbyDuplicate(int[] nums, int k) {
 //  check validation

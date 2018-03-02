@@ -16,9 +16,9 @@ tags:
 ---
 
 #### [Minimum Path Sum](https://leetcode.com/problems/minimum-path-sum/description/)
-解题思路
+**解题思路**<br>
 dp[n][m] = Math.min(dp[n-1][m],dp[n][m-1])+nums[n][m],需要对0行和0列合理初始化
-实现代码
+**实现代码**<br>
 ```java
 public int minPathSum(int[][] grid) {
 //        check validation,should not happen here
