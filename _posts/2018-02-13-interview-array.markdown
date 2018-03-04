@@ -898,7 +898,39 @@ public int[][] generateMatrix(int n) {
 }
 ```
 
+---
+#### [Summary Ranges](https://leetcode.com/problems/summary-ranges/description/)
+**解题思路**
+设置,start,end两个游标，如果是连续递增的话end++,具体参加实现代码。<br>
+**实现代码**
+```java
+public List<String> summaryRanges(int[] nums) {
+    List<String> rt = new ArrayList<>();
+    //        check validation
+    if (nums == null || nums.length == 0) {
+        return rt;
+    }
 
+    int length = nums.length;
+    for (int i = 0; i < length; i++) {
+        // 设置起始和结束游标
+        int start = i;
+        int end = start;
+
+        while (i + 1 < length && nums[i + 1] - 1 == nums[i]) {
+            i++;
+            end++;
+        }
+
+        if (start == end) {
+            rt.add(nums[start] + "");
+        } else {
+            rt.add(nums[start] + "->" + nums[end]);
+        }
+    }
+    return rt;
+}
+```
 
 
 ---

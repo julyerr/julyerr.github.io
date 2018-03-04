@@ -106,6 +106,39 @@ private void dfs(int[] nums, int start) {
 
 ```
 
+#### [Subsets II](https://leetcode.com/problems/subsets-ii/description/)
+**解题思路**
+可以不使用递归的方式解决，针对pow(2,nums.length)的方法数，然后加进对应的nums[i],具体参见实现代码。<br>
+这种实现方式也适用于Subset 结题。<br>
+**实现代码**
+```java
+public List<List<Integer>> subsetsWithDup(int[] nums) {
+//        check validation
+    if (nums == null || nums.length == 0) {
+        return new ArrayList<>();
+    }
+
+    Set<List<Integer>> rt = new HashSet<>();
+
+    int length = nums.length;
+    Arrays.sort(nums);
+    for (int i = 0; i < Math.pow(2, length); i++) {
+        int tmp = i;
+        List<Integer> list = new ArrayList<>();
+
+        for (int j = 0; j < length; j++) {
+            int bit = tmp & 0x01;
+            tmp = tmp >> 1;
+            if (bit == 1) {
+                list.add(nums[j]);
+            }
+        }
+        rt.add(list);
+    }
+    return new ArrayList<>(rt);
+}
+```
+
 ---
 ### Combination Sum系列
 #### [Combination Sum](https://leetcode.com/problems/combination-sum/description/)
