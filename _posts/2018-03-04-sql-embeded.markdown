@@ -181,7 +181,7 @@ public class Demo1 {
 }
 ```
 
-基于xml的配置方式，参见[spring与c3p0集成](http://localhost:4000/2018/03/04/mybatis-sumupone/#spring-对数据库操作)。
+基于xml的配置方式，参见[spring与c3p0集成](http://julyerr.club/2018/03/04/mybatis-sumupone/#spring-对数据库操作)。
 
 ---
 ### 参考资料

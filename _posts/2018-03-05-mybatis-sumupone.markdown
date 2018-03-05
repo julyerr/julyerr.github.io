@@ -54,7 +54,7 @@ public class StudentMapper implements RowMapper<Student> {
         return student;
     }
 }
-```	
+``` 
 
 查询单个或者多个对象: 
 
@@ -81,7 +81,7 @@ public interface StudentDao {
 ```
 ```java
 public class StudentDaoImpl implements StudentDao {
-//    属性注入	
+//    属性注入  
     private DataSource datasource;
     private JdbcTemplate jdbcTemplateObject;
 
@@ -209,11 +209,202 @@ public class StudentDaoImpl implements StudentDao {
 [示例项目的代码参见](https://github.com/julyerr/springdemo/tree/master/src/main/java/com/julyerr/jdbcTemplate)
 
 ---
-### mybatis工作原理
+### mybatis原理简介和基本使用
 
 mybatis是一个持久层框架，其核心是输入映射和输出映射
 ![](/img/sql/mybatis/workflow.png)
 
+#### mybatis工作环境搭建
+本文主要讲解独立mybatis工程使用，没有结合spring(参见[下一篇](http://julyerr.club/2018/03/05/mybatis-sumuptwo/#mybatis和spring框架集成))
+
+1.加入依赖包mybatis.jar以及mysql-connector-java.jar，为了显示日志信息推荐使用log4j.jar
+
+2.**mybatis配置**<br>
+    单独使用mybatis需要配置MybatisConfiguration.xml文件，如果使用了spring只需要配置映射实体类映射即可。
+```xml
+<!--如果使用spring，该配置交由sprig负责-->
+<environments default="development">
+    <environment id="development">
+        <!-- 使用jdbc事务管理，目前由mybatis来管理 -->
+        <transactionManager type="JDBC"/>
+        <!-- 数据库连接池，目前由mybatis来管理 -->
+        <dataSource type="POOLED">
+        <property name="driver" value="com.mysql.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://localhost:3306/demo"/>
+        <property name="username" value="root"/>
+        <property name="password" value="root"/>
+        </dataSource>
+    </environment>
+</environments>
+
+<typeAliases>
+        <!--<package name="com.julyerr.interviews.sql.mybatis.po"/>-->
+        <typeAlias alias="User" type="com.julyerr.interviews.sql.mybatis.po.User"/>
+</typeAliases>
+
+<mappers>
+    <!--<package name="sqlMap"/>-->
+    <mapper resource="sqlMap/User.xml"/>
+</mappers>
+```
+
+**常见属性配置说明**
+
+- `<environment>`元素是配置数据库,可以设置不同的id选择使用
+- typeAliases：方便在配置文件中引用类，不用书写全路径名称，直接使用别名。类种数太多，可以设置package属性
+- mappers：说明实体类的路径。mapper文件太多，可以设置mapper的package属性。
+
+3.**相关数据表的创建**
+
+```sql
+CREATE TABLE `user` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `username` VARCHAR(32) NOT NULL COMMENT '用户名称',
+  `birthday` DATE DEFAULT NULL COMMENT '生日',
+  `sex` CHAR(1) DEFAULT NULL COMMENT '性别',
+  `address` VARCHAR(256) DEFAULT NULL COMMENT '地址',
+  PRIMARY KEY (`id`)
+) ENGINE=INNODB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8;
+
+insert into user(username,birthday,sex,address) values("张三1","1990-09-19","男","同济大学");
+insert into user(username,birthday,sex,address) values("张三2","1990-09-19","男","同济大学");
+```
+
+4.**po 类**
+
+```java
+public class User{
+    private Integer id;
+    private String username;
+    private Date birthday;
+    private String sex;
+    private String address;
+    //getter & setter
+}
+```
+
+5.**User.xml配置映射文件**
+
+```xml
+<mapper namespace="test">
+    <!-- 需求：通过id查询用户 -->
+    <select id="findUserById" parameterType="int" resultType="com.julyerr.interviews.sql.mybatis.po.User">
+        select * from user where id = #{id}
+    </select>
+
+    <!-- 添加用户 -->
+    <insert id="insertUser" parameterType="com.julyerr.interviews.sql.mybatis.po.User">
+        insert into user(username,birthday,sex,address) values(#{username},#{birthday},#{sex},#{address})
+    </insert>
+</mapper>
+```
+
+mybatis提供了非常灵活的sql书写方式，除了常见的`<select>`、`<delete>`、`<update>`等，
+还提供动态sql的支持（参加后文）以及输入和输出类型映射（参见后文）。
+
+6.dao层接口以及实现
+
+```java
+public interface UserDao {
+    //根据id查询用户信息
+    public User findUserById(int id) throws Exception;
+    //添加用户信息
+    public void insertUser(User user) throws Exception;
+    //...
+}
+```
+
+```java
+public class UserDaoImpl implements UserDao {
+    private SqlSessionFactory sqlSessionFactory;
+    //需要向dao实现类中注入SqlSessionFactory，由于没和Spring整合，这里通过构造函数注入
+    public UserDaoImpl(SqlSessionFactory sqlSessionFactory) {
+        this.sqlSessionFactory = sqlSessionFactory;
+    }
+    @Override
+    public User findUserById(int id) throws Exception {
+        SqlSession sqlSession = sqlSessionFactory.openSession();
+        User user = sqlSession.selectOne("test.findUserById", id);
+        //释放资源
+        sqlSession.close();
+        return user;
+    }
+    @Override
+    public void insertUser(User user) throws Exception {
+        SqlSession sqlSession = sqlSessionFactory.openSession();
+        sqlSession.insert("test.insertUser", user);
+        sqlSession.commit();//执行插入要先commit
+        sqlSession.close();
+    }
+    //...
+}
+```
+
+7.测试文件
+
+```java
+public class MybatisDemo1Test {
+    private SqlSessionFactory sqlSessionFactory;
+
+    @Before
+    public void setUp() throws Exception {
+        //创建sqlSessionFactory
+        String resource = "MybatisConfiguration.xml"; //mybatis配置文件
+
+        //得到配置文件的流
+        InputStream inputStream = Resources.getResourceAsStream(resource);
+
+        //创建会话工厂SqlSessionFactory,要传入mybaits的配置文件的流
+        sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+
+    }
+
+    @Test
+    public void testFindUserById() throws Exception {
+        //创建UserDao的对象
+        UserDao userDao = new UserDaoImpl(sqlSessionFactory);
+        System.out.println(userDao.findUserById(1));
+    }
+}
+```
+
+以上只是粘贴核心代码，完整代码示例[参见](https://github.com/julyerr/collections/tree/master/src/main/java/com/julyerr/interviews/sql/mybatis/)以及对应的test文件。
+
+---
+#### 输入映射和输出映射
+
+**输入映射**<br>
+`parameterType`指定输入参数的类型，类型可以是简单类型、hashmap、pojo的包装类型.<br>
+需要传入查询条件很复杂（可能包括用户信息、其它信息，比如商品、订单的），那么我们单纯的传入一个User就不行了，所以首先我们得根据查询条件，自定义一个新的pojo，在这个pojo中包含所有的查询条件。<br>
+
+**输出映射**<br>
+resultType指定输出的类型，但是要求pojo列名和pojo中对应的属性名要一致才可以做正确的映射；
+使用resultMap可以实现自定义映射关系。<br>
+
+拥有下面常见的属性：
+
+- id：必填属性，且唯一，在select标签中，resultMap指定的值就是id值
+- type：必填属性，用于配置查询列所映射到的Java对象类型
+- extends：可填属性，表明该resultMap继承自哪个resultMap
+
+常见的标签
+
+- id：一个id结果，标记结果作为id（唯一值）
+- result：注入到Java对象属性的普通结果
+- association：一个复杂的类型关联，许多结果将包成该类型
+- collection：复杂类型的集合
+
+```xml
+<select id="findUserByIdResultMap" parameterType="int" resultMap="userResultMap">
+        SELECT id id_,username username_ from user where id = #{id}
+</select>
+<resultMap type="user" id="userResultMap">
+    <id column="id_" property="id"/>
+    <result column="username_" property="username"/>
+</resultMap>
+```
+
+关联关系配置参见后文的一对一、一对多配置<br>
 
 
 
@@ -223,7 +414,7 @@ mybatis是一个持久层框架，其核心是输入映射和输出映射
 - 把sql语句放在xml配置文件中，修改sql语句也不需要重新编译java代码 
 - 查询的结果集，自动映射成 java对象
 
-
+下一篇[参见](http://julyerr.club/2018/03/05/mybatis-sumuptwo/)
 
 ---
 ### 参考资料
@@ -231,3 +422,4 @@ mybatis是一个持久层框架，其核心是输入映射和输出映射
 - [Spring之——c3p0配置详解](http://blog.csdn.net/l1028386804/article/details/51162560)
 - [使用Spring JDBCTemplate简化JDBC的操作](http://www.cnblogs.com/lichenwei/p/3902294.html)
 - [使用Spring JDBC框架连接并操作数据库](http://blog.csdn.net/wanghuiqi2008/article/details/46239753)
+- [MyBatis 学习](http://blog.csdn.net/column/details/smybatis.html)

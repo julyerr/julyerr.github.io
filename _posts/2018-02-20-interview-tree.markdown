@@ -57,6 +57,52 @@ private static TreeNode constructBT(int[] pre, int preStart, int preEnd, int[] i
 [实现代码](https://github.com/julyerr/algo/tree/master/src/com/julyerr/leetcode/tree/BSTFIP.java)
 
 ---
+#### [Convert Sorted List to Binary Search Tree](https://leetcode.com/problems/convert-sorted-list-to-binary-search-tree/description/)
+**解题思路**
+需要保持BST的平衡性，可以取链表的中间节点作为root节点，然后递归左右部分。取中间节点的时候可以通过快慢指针。<br>
+**实现代码**
+```java
+public TreeNode sortedListToBST(ListNode head) {
+//        check validation
+    if (head == null) {
+        return null;
+    } else if (head.next == null) {
+        return new TreeNode(head.val);
+    }
+    ListNode mid = cutMid(head);
+
+//        查询中间节点，构建平衡树
+    TreeNode node = new TreeNode(mid.val);
+    node.left = sortedListToBST(head);
+    node.right = sortedListToBST(mid.next);
+    return node;
+}
+
+private ListNode cutMid(ListNode head) {
+    if (head == null) {
+        return null;
+    }
+    //        single node
+    if (head.next == null) {
+        return head;
+    }
+    ListNode fast = head;
+    ListNode slow = head;
+
+    ListNode slowPre = null;
+//        查询设置slow为中间位置
+    while (fast != null && fast.next != null) {
+        slowPre = slow;
+        slow = slow.next;
+        fast = fast.next.next;
+    }
+//        分成不相链的两部分
+    slowPre.next = null;
+    return slow;
+}
+```
+
+---
 ### 参考资料
 - [剑指offer（第二版）java实现导航帖](https://www.jianshu.com/p/010410a4d419)
 - [LeetCode题解](https://www.zybuluo.com/Yano/note/253649)
