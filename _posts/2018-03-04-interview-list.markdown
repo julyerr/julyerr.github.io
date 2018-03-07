@@ -237,6 +237,386 @@ public ListNode getIntersectionNode(ListNode headA, ListNode headB) {
 }
 ```
 
+### Reverse List
+使用递归的方式较为简单，直接反转容易出错
+
+#### [Reverse Linked List](https://leetcode.com/problems/reverse-linked-list/description/)
+**解题思路**
+直接递归反转，node.next反转好之后，调整node和反转好的节点的关系即可<br>
+**实现代码**
+```java
+public ListNode reverseList(ListNode head) {
+    if(head == null || head.next == null){
+        return head;
+    }
+    
+//        保留head.next用于调整关系
+    ListNode tmp = head.next;
+    ListNode newHead = reverseList(head.next);
+    
+//        修改指针
+    tmp.next = head;
+    head.next = null;
+    
+    return newHead;
+}
+```
+
+#### [Reverse Linked List II](https://leetcode.com/problems/reverse-linked-list-ii/description/)
+**解题思路**
+限制在某个范围之内的反转操作，记录起始和结束node,结束node的null需要设置为null；
+反转该部分之后，重新拼接出新的linked list<br>
+**实现代码**
+```java
+public ListNode reverseBetween(ListNode head, int m, int n) {
+    if (head == null || head.next == null || m == n ) {
+        return head;
+    }
+
+//        为了方便操作，设置临时头结点
+    ListNode tmpHead = new ListNode(0);
+    tmpHead.next = head;
+
+
+//        保留pre
+    ListNode pre = null;
+    //        记录起始和结束node
+    ListNode start = tmpHead;
+    ListNode end = tmpHead;
+    while (m-- > 0) {
+        pre = start;
+        start = start.next;
+        end = end.next;
+        n--;
+    }
+    while (n-- > 0) {
+        end = end.next;
+    }
+
+//        保留tail
+    ListNode tail = end.next;
+    end.next = null;
+
+//        反转并拼接
+    pre.next = reverseListComm(start);
+    start.next = tail;
+
+    return tmpHead.next;
+}
+
+public static ListNode reverseListComm(ListNode head) {
+    if (head == null || head.next == null) {
+        return head;
+    }
+
+    ListNode tmp = head.next;
+    ListNode newHead = reverseListComm(head.next);
+    tmp.next = head;
+    head.next = null;
+    return newHead;
+}
+```
+
+---
+#### [Palindrome Linked List](https://leetcode.com/problems/palindrome-linked-list/description/)
+**解题思路**
+先使用快慢指针找到中点，然后反转后半段；返回的新节点和开始节点迭代比较即可<br>
+**实现代码**
+```java
+public boolean isPalindrome(ListNode head) {
+//        check validation
+    if (head == null || head.next == null) {
+        return true;
+    }
+
+    ListNode fast = head;
+    ListNode slow = head;
+
+//        找到中间节点
+    while (fast != null && fast.next != null) {
+        fast = fast.next.next;
+        slow = slow.next;
+    }
+
+//        翻转后部分
+    ListNode tail = reverseList(slow);
+
+//        迭代比较
+//        notes:如果设置成head!=tail，会发生空指针引用的异常，中间的tail = null
+    while (head != slow) {
+        if (head.val != tail.val) {
+            return false;
+        }
+        head = head.next;
+        tail = tail.next;
+    }
+    return true;
+}
+
+private ListNode reverseList(ListNode head) {
+    if (head == null || head.next == null) {
+        return head;
+    }
+
+    ListNode tmp = head.next;
+    ListNode newHead = reverseList(head.next);
+    tmp.next = head;
+    head.next = null;
+    return newHead;
+}
+```
+
+---
+### remove duplicates
+
+和数组去重类似，只不过改成了链表
+
+##### [Remove Duplicates from Sorted List](https://leetcode.com/problems/remove-duplicates-from-sorted-list/description/)
+
+**解题思路**
+next只有当新的元素出现的时候才添加进来<br>
+**实现代码**
+```java
+public ListNode deleteDuplicates(ListNode head) {
+    if(head == null || head.next==null){
+        return head;
+    }
+
+    ListNode p = head;
+    while(p.next!=null){
+       if(p.next.val==p.val){
+           ListNode tmp = p.next;
+//               下一个不相等的节点或者null
+           while(tmp!=null && tmp.val == p.val){
+               tmp = tmp.next;
+           }
+           p.next = tmp;
+       }else{
+           p = p.next;
+       }
+    }
+    return head;
+}
+```
+
+#### [Remove Duplicates from Sorted List II](https://leetcode.com/problems/remove-duplicates-from-sorted-list-ii/description/)
+**解题思路**
+设置一个临时头结点，只有将未出现过重复的节点添加进来。<br>
+**实现代码**
+```java
+public ListNode deleteDuplicates(ListNode head) {
+    if (head == null || head.next == null) {
+        return head;
+    }
+
+    ListNode tmpHead = new ListNode(0);
+    tmpHead.next = head;
+
+    ListNode p = tmpHead;
+//        两级next比较
+    while (p.next != null && p.next.next != null) {
+        if (p.next.val == p.next.next.val) {
+            ListNode tmp = p.next.next;
+//                寻找新值，或者出现null
+            while (tmp != null && tmp.val == p.next.val) {
+                tmp = tmp.next;
+            }
+            p.next = tmp;
+        } else {
+            p = p.next;
+        }
+    }
+
+    return tmpHead.next;
+}
+```
+
+---
+#### [Remove Nth Node From End of List](https://leetcode.com/problems/remove-nth-node-from-end-of-list/description/)
+**解题思路**
+借鉴快慢指针的思路，可以先让fast走n步，然后迭代至fast到末端，直接修改next即可<br>
+**实现代码**
+```java
+//    题目明确n是有效的，因此不需要判断n的范围
+public ListNode removeNthFromEnd(ListNode head, int n) {
+//        check n if necessary
+    if (head == null) {
+        return head;
+    }
+
+//        设置临时头结点
+    ListNode tmpHead = new ListNode(0);
+    tmpHead.next = head;
+
+    ListNode fast = tmpHead;
+//        先走N步
+    while (n-- > 0) {
+        fast = fast.next;
+    }
+    ListNode pre = tmpHead;
+
+//        迭代到fast到末端
+    while (fast.next != null) {
+        fast = fast.next;
+        pre = pre.next;
+    }
+//        移除对应节点
+    pre.next = pre.next.next;
+
+    return tmpHead.next;
+}
+```
+
+---
+#### [Rotate List](https://leetcode.com/problems/rotate-list/description/)
+**解题思路**
+先调整成一个环，然后选择合适的位置截断<br>
+**实现代码**
+```java
+public ListNode rotateRight(ListNode head, int k) {
+    if (head == null) {
+        return head;
+    }
+
+//        记录链表的长度，p为末端
+    int length = 1;
+    ListNode p = head;
+    while (p.next != null) {
+        p = p.next;
+        length++;
+    }
+
+//        k可能超过链表的长度，需要取余数
+    k = k % length;
+
+//        未发生变化
+    if (k == 0) {
+        return head;
+    }
+
+//        找到新的末端节点
+    ListNode tail = head;
+    for (int i = 0; i < length - k - 1; i++) {
+        tail = tail.next;
+    }
+
+//        构成环
+    p.next = head;
+    ListNode ret = tail.next;
+
+//        截断环
+    tail.next = null;
+
+    return ret;
+
+}
+```
+
+---
+#### [Sort List](https://leetcode.com/problems/sort-list/description/)
+**解题思路**
+在O(nlogn)的时间复杂度进行排序，常见有快排、堆排和归并排序；前两者对元素的下标操作要求较为灵活，
+选择归并排序。先不断split,后调用merge归并<br>
+**实现代码**
+```java
+public ListNode sortList(ListNode head){
+    if(head == null || head.next == null){
+        return head;
+    }
+    ListNode mid = split(head);
+    ListNode node1 = sortList(head);
+    ListNode node2 = sortList(mid);
+   return mergeTwoLists(node1,node2);
+}
+
+private ListNode split(ListNode head){
+    if(head == null || head.next==null){
+        return head;
+    }
+    
+//        设置快慢指针
+    ListNode fast = head;
+    ListNode slow = head;
+    ListNode slowPre = null;
+    while(fast!=null && fast.next!=null){
+        fast = fast.next.next;
+        slowPre = slow;
+        slow = slow.next;
+    }
+    
+    slowPre.next = null;
+    return slow;
+}
+
+public static ListNode mergeTwoLists(ListNode l1, ListNode l2) {
+//        check validation
+    if (l1 == null && l2 == null) {
+        return null;
+    } else if (l1 == null) {
+        return l2;
+    } else if (l2 == null) {
+        return l1;
+    }
+
+//        设置临时节点
+    ListNode tmpHead = new ListNode(0);
+    ListNode cur = tmpHead;
+
+    ListNode p = l1;
+    ListNode q = l2;
+    while (p != null && q != null) {
+        if (p.val <= q.val) {
+            cur.next = p;
+            p = p.next;
+        } else {
+            cur.next = q;
+            q = q.next;
+        }
+        cur = cur.next;
+    }
+//        剩余部分合并
+    if (p != null) {
+        cur.next = p;
+    }
+    if (q != null) {
+        cur.next = q;
+    }
+    return tmpHead.next;
+}
+```
+
+#### [Swap Nodes in Pairs](https://leetcode.com/problems/swap-nodes-in-pairs/description/)
+**解题思路**
+题目明确要求，不能直接交换相邻node之间的val，只能调整node。
+迭代list的时候，两两做一个部分进行交换即可，注意next<br>
+**实现代码**
+```java
+public ListNode swapPairs(ListNode head) {
+    if(head == null || head.next== null){
+        return head;
+    }
+
+//        设置临时头结点，方便操作
+    ListNode tmpHead = new ListNode(0);
+    tmpHead.next = head;
+
+    ListNode p = tmpHead;
+    ListNode nextStep = null;
+    while(p!=null && p.next!=null && p.next.next!=null){
+        nextStep = p.next.next.next;
+        
+        ListNode tmp = p.next;
+        p.next = p.next.next;
+        p.next.next = tmp;
+        tmp.next = nextStep;
+//            下一次跌地
+        p = tmp;
+    }
+
+    return tmpHead.next;
+}
+```
+
 
 ---
 ### 参考资料

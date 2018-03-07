@@ -1,0 +1,220 @@
+---
+layout:     post
+title:      "http 协议"
+subtitle:   "HTTP 协议"
+date:       2018-03-06 12:00:00
+author:     "julyerr"
+header-img: "img/net/app/http/http.jpg"
+header-mask: 0.5
+catalog:    true
+tags:
+    - net
+    - http
+---
+
+
+![](/img/net/app/http/http.png)
+
+几乎所有的应用层协议底层都是用了socket，但是由于socket编程需要处理连接断开等琐碎的细节，而且通信双方没有固定的格式。因此针对不同的应用场景，制定了不同的应用层协议；各自的语言提供了http类库方便开发人员快速开发。<br>
+>HTTP协议（超文本传输协议）规定了浏览器和万维网(WWW = World Wide Web)服务器之间互相通信的规则。
+
+**主要有以下特点**
+
+- 支持客户/服务器模式
+- 简单快速 客户向服务器请求服务时，只需传送请求方法和路径
+- 无状态 HTTP协议是无状态协议，无状态是指协议对于事务处理没有记忆能力。为了保留历史数据通常使用cookie或者session等保留，具体参见后文
+- 无连接 限制每次连接只处理一个请求。每次发起一次请求，需要建立一次连接，如果同一台主机发起多个请求，就需要建立多次连接，比较耗费系统资源。从HTTP/1.1起，默认都开启了Keep-Alive，保持连接特性，即开始建立的tcp连接不会立即断开，可以维持一个时间，下一次发起请求可以继续使用该连接。
+
+#### HTTP报文格式
+
+HTTP有请求报文（从客户向服务器发送请求报文）和响应报文（从服务器到客户的回答）两类报文，都是由三部分组成。开始行（区分请求还是响应报文，请求称为请求行，响应称为状态行）、首部行和实体主体（很少使用）.<br>
+
+**请求报文**<br>
+
+请求行<br>
+包含三个内容：方法、请求资源URL和HTTP的版本
+
+![](/img/net/app/http/request-head.png)	
+常见方法<br>
+
+- GET：请求读取由URL所标志的信息。
+- POST：给服务器添加信息（如注释）。
+- HEAD：请求获取由Request-URI所标识的资源的响应消息报头。
+- PUT：在给定的URL下存储一个文档。
+- DELETE：删除给定的URL所标志的资源。 
+
+GET和POST的区别如下：
+
+- 数据量：GET传输有大小限制，通常为2KB；但是POST传输任意大小的数据
+- 安全性：GET传输的数据通常接在请求URL后面，但是POST传输的数据是和主体一起传输的
+	
+请求资源URL<br>
+
+一般形式：` <协议>://<主机>:<端口>/<路径>`	
+	
+版本号<br>
+1.1,1.0,0.9等，包括现在2.0，不同版本支持特性不同，简单总结如下:
+
+- HTTP1.0 无状态、无连接
+- HTTP1.1
+	- 持久连接
+	- 请求管道化
+	- 增加缓存处理（新的字段如cache-control）
+	- 增加Host字段、支持断点传输等
+- HTTP2.0
+	- 二进制分帧
+	- 多路复用（或连接共享）
+	- 首部压缩
+	- 服务器推送
+
+
+**首部行(请求头)**<br>
+常见请求头
+	
+- `If-Modified-Since`：把浏览器端缓存页面的最后修改时间发送到服务器去，服务器会把这个时间与服务器上实际文件的最后修改时间进行对比。如果时间一致，那么返回304，客户端就直接使用本地缓存文件。
+- `If-None-Match`：If-None-Match和ETag一起工作，工作原理是在HTTP Response中添加ETag信息。 当用户再次请求该资源时，将在HTTP Request中加入If-None-Match信息(ETag的值)。如果服务器验证资源的ETag没有改变（该资源没有更新），将返回一个304状态告诉客户端使用本地缓存文件。
+- `Accept`：浏览器端可以接受的MIME类型。
+- `Accept-Encoding`：浏览器申明自己可接收的编码方法，通常指定压缩方法，是否支持压缩，支持什么压缩方法（gzip，deflate）
+- `Content-Type`：发送数据类型，例如：`Content-Type:application/x-www-form-urlencoded`
+- `Connection`:连接方式，`Connection: keep-alive`
+- `Cookie`：最重要的请求头之一, 将cookie的值发送给HTTP服务器。
+- `Content-Length`：表示请求消息正文的长度。
+- `Authorization`：授权信息，通常出现在对服务器发送的WWW-Authenticate头的应答中。主要用于证明客户端有权查看某个资源。当浏览器访问一个页面时，如果收到服务器的响应代码为401（未授权），可以发送一个包含Authorization请求报头域的请求，要求服务器对其进行验证。
+- `Range`：可以请求实体的一个或者多个子范围。例如，表示头500个字节：bytes=0-499
+- `Pragma`：指定“no-cache”值表示服务器必须返回一个刷新后的文档
+- `Cache-Control`：指定请求和响应遵循的缓存机制。请求时的缓存指令包括no-cache、no-store、max-age、max-stale、min-fresh、only-if-cached，响应消息中的指令包括public、private、no-cache、no-store、no-transform、must-revalidate、proxy-revalidate、max-age、s-maxage。
+
+
+**响应报文**
+
+![](/img/net/app/http/response-header.png)
+
+状态行<br>
+格式`HTTP-Version 状态码 状态代码的文本描述`，常见状态码
+
+- 1xx：指示信息--表示请求已接收，继续处理
+- 2xx：成功--表示请求已被成功接收、理解、接受
+- 3xx：重定向--要完成请求必须进行更进一步的操作
+- 4xx：客户端错误--请求有语法错误或请求无法实现
+- 5xx：服务器端错误--服务器未能实现合法的请求
+
+首部行(响应头)<br>
+常见响应头
+
+- `Allow`：服务器支持哪些请求方法（如GET、POST等）
+- `Date`：表示消息发送的时间，时间的描述格式由rfc822定义
+- `Expires`：指明应该在什么时候认为文档已经过期，从而不再缓存它
+- `ETag`：和If-None-Match 配合使用
+- `Last-Modified`：用于指示资源的最后修改日期和时间
+- `Set-Cookie`:将cookie信息发送到客户端浏览器，例如`Set-Cookie: sc=4c31523a; path=/; domain=.acookie.taobao.com`
+- `Content-Type`：相应内容的类型和字符集，例如`Content-Type: text/html;charset=utf-8`
+- `Content-Length`：指明实体正文的长度
+- `Content-Encoding`：WEB服务器表明自己使用了什么压缩方法（gzip，deflate）压缩响应中的对象
+- `Content-Range`：用于指定整个实体中的一部分的插入位置，例如`Content-Range:bytes0-499/1234`，格式为`:bytes-unitSPfirst-byte-pos-last-byte-pos/entity-length`
+- `Server`：指明HTTP服务器用来处理请求的软件信息
+- `Connection`：连接状态
+- `Location`：用于重定向一个新的位置，包含新的URL地址
+- `Refresh`：表示浏览器应该在多少时间之后刷新文档，以秒计
+- `WWW-Authenticate`：该响应报头域必须被包含在401（未授权的）响应消息中，客户端收到401响应消息时候，并发送Authorization报头域请求服务器对其进行验证时，服务端响应报头就包含该报头域。
+P3P：用于跨域设置Cookie
+
+---
+### http常见应用
+
+#### 状态信息保留
+
+**cookie**<br>
+将状态信息保存在用户浏览器中，每次请求的时候添加对应的cookie信息
+![](/img/net/app/http/cookie.png)
+
+**session**<br>
+用户的信息保存在服务器端，通常用散列表的结构存储，key即为session-id。
+
+通常有两种实现技术
+
+- **使用cookie**
+服务器给每个Session分配一个唯一的JSESSIONID，并通过Cookie发送给客户端，下次客户端发起请求的时候在cookie中添加JSESSIONID,前提是客户端不禁用cookie.
+![](/img/net/app/http/session-cookie.png)
+
+- **URL回写**
+
+服务器在发送给浏览器页面的所有链接中都携带JSESSIONID的参数，这样客户端点击任何一个链接都会把JSESSIONID带会服务器.<br>
+
+**cookie和session的比较**
+
+- **存取方式不同**
+	Cookie中只能保管ASCII字符串，假如需求存取Unicode字符或者二进制数据，需求先进行编码；Session中能够存取任何类型的数据，包括而不限于String、Integer、List、Map等
+- **隐私策略的不同**
+	Cookie存储在客户端阅读器中，对客户端是可见的,容易被客户端阅读器中的部分应用窥探甚至修改；Session存储在服务器上，对客户端是透明的，不存在敏感信息泄露的风险。
+- **浏览器支持的不同**
+	Cookie默认生命周期为浏览器打开期间；能够设为本浏览器窗口以及子窗口内有效（把过期时间设为–1），也能够设为一切阅读器窗口内有效（把过期时间设为某个大于0的整数），设置超时时间的cookie会被保存到硬盘上，关闭后再次打开浏览器，这些cookie依然有效直到超过设定的过期时间，此时cookkie在多个浏览器可以共享；Session只能在本阅读器窗口以及其子窗口内有效。
+- **跨域支持不同**
+    Cookie支持跨域名访问，例如将domain属性设置为“.biaodianfu.com”，则以“.biaodianfu.com”为后缀的一切域名均能够访问该Cookie；Session仅在它所在的域名内有效。	
+
+#### Content-Range 应用
+
+- **多线程下载并发进行下载**
+每个线程通过Content-Rang指定下载的范围，各自下载完全之后然后进行合并
+- **断点续传**
+已经下载部分的文件，继续下载的时候通过Content-Range指定未下载范围直接下载即可
+
+#### 虚拟主机
+把一台运行在互联网上的服务器划分成多个“虚拟”的服务器。客户端请求头中Host字段指定了需要访问的主机，多种Host请求只需要通过域名解析解析到同一台服务器上，同一台服务器进行处理，就起到多台服务器作用。
+
+#### 跨域请求
+
+跨域，指的是浏览器不能执行其他网站的脚本，这里指的同一个网站是指域名、协议、端口均相同。
+防止跨域主要是为了js的安全考虑。<br>
+
+通常有如下几种解决方式：
+
+- **代理**：前端不允许跨域进行操作，后端没有限制。前端调用同一个网站后台的一个接口，后台代理去执行请求。
+- **JSONP**:只能处理get请求，具体参见[1]
+- **协议跨域 (跨域资源访问CORS)**
+	被访问域名在webservice配置跨域访问的header
+
+```
+Access-Control-Allow-Origin:   * | 访问域名;
+Access-Control-Allow-Methods:  GET | POST | PUT | DELETE;
+```
+
+
+---
+### https
+
+https 就是在HTTP协议之上增加了加密层(ssl/tls)<br>
+
+#### 加密通信中一些概念
+
+**对称加密和非对称加密**<br>
+
+- 对称加密：加密过程和解密过程使用相同的密钥，处理过程相对简单，性能自然更高
+- 非对称加密：加密和解密使用的密钥不同，性能相等较低，但是实际应用的场景很多。非对称加密中有公钥和私钥两种密钥，公钥是公开的，私钥则是个人私有的；通过私钥加密的数据可以通过公钥进行解密，常见的RSA就是一种非对称加密方式。比如，你向银行请求公钥，银行将公钥发给你，你使用公钥对消息加密，那么只有私钥的持有人--银行才能对你的消息解密。与对称加密不同的是，银行不需要将私钥通过网络发送出去，因此安全性大大提高。
+
+**数字证书**
+	通过非对称加密的方式可以做到一定的安全性，但是还是不能解决一些问题，考虑如下情况：<br>
+客户A和公司B进行通信，A首先获取到B的公钥，但是如果公司C冒充B给A发公钥，A对于接受的公钥便不具有判断性。这时候就需要有第三方D出来作证（通常具有一定的公信力），A信任并拥有D的公钥，并且只接受通过D私钥加密过的公钥；此时，B先将自己的公钥拿到D处进行加密（相当于得到D给出的认证信息），然后再发送给A，A通过D的私钥解密得到B的公钥；如果C的合法性被D否决，那么C的公钥就不会被A接受，从而得到较为安全的通信保证。其中的第三方称为证书管理机构(`certificate authority`,CA).<br>
+下图展示了认证过程（数字证书生成过程）
+![](/img/net/app/http/ct.png)	
+下图展示了A获取公钥过程
+![](/img/net/app/http/cp.png)	
+	
+
+**https通信过程**
+
+https不同于HTTP过程就是开始的双方加密握手的建立，加密建立之后双方只需要对传输的数据一方加密一方解密（具体和HTTP没有其他区别）。
+![](/img/net/app/http/https.png)	
+
+上图展示了https建立流程，双方先通过非对称加密商量好密钥，后面通过该密钥加密和解密数据。<br>
+为什么开始使用非对称加密方式通信，后面又使用对称加密的方式通信？主要是性能原因，非对称加密性能要比对称加密慢上几个数量级，双方改用对称加密方式通信可以大大提升效率。
+
+
+---
+### 参考资料
+[1]:https://zhuanlan.zhihu.com/p/24632196
+- [计算机网络面试知识点总结](https://www.jianshu.com/p/7deb521aba1e)
+- [HTTP协议详解](http://www.cnblogs.com/EricaMIN1987_IT/p/3837436.html)
+- [HTTP1.0 HTTP1.1 HTTP2.0 主要特性对比](https://segmentfault.com/a/1190000013028798)
+- [Session和Cookie比较](https://www.jianshu.com/p/236a074d0d05)
+- [非对称加密原理解析](http://blog.csdn.net/wzzvictory/article/details/9015155)
+- [什么是跨域，解决跨域问题](https://www.jianshu.com/p/6a6bff614407)
