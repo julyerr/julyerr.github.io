@@ -107,6 +107,7 @@ public int findMin(int[] nums) {
 - 如果A[m]>=A[r]，那么说明从l到m一定是有序的，同样只需要判断target是否在这个范围内，相应的移动边缘即可。
 根据以上方法，每次我们都可以切掉一半的数据，所以算法的时间复杂度是O(logn)，空间复杂度是O(1)。<br>
 **实现代码**<br>
+
 ```java
 public int search(int[] nums, int target) {
 //        check validation
@@ -338,6 +339,8 @@ public int[] searchRange(int[] nums, int target) {
 }
 ```
 
+
+
 ---
 #### [Sort Colors](https://leetcode.com/problems/sort-colors/description/)
 **解题思路**<br>
@@ -371,6 +374,168 @@ private static void swap(int[] nums, int m, int n) {
     int t = nums[m];
     nums[m] = nums[n];
     nums[n] = t;
+}
+```
+
+---
+#### [H-Index](https://leetcode.com/problems/h-index/description/)
+**解题思路**
+第一次题目理解比较难以理解，以[3, 0, 6, 1, 5]为例，先将该数组从大到小进行排序得到
+[6,5,3,1,0]，从左到右迭代，求第一个i使得`nums[i]<i`，实现还是比较简单的，参见具体代码。<br>
+**实现代码**
+```java
+public int hIndex(int[] citations) {
+    if (citations == null || citations.length == 0) {
+        return 0;
+    }
+    Arrays.sort(citations);
+    //        针对int[]数组，从大到小不能自定义排序，因此考虑从小到大，然后做部分调整
+    int ret = 0;
+    int length = citations.length;
+    for (int i = length - 1; i >= 0; i--) {
+        if (citations[i] >= length - i) {
+            ret++;
+        } else {
+            break;
+        }
+    }
+
+    return ret;
+}
+```
+
+#### [H-Index II](https://leetcode.com/problems/h-index-ii/description/)
+**解题思路**
+如果输入的citations已经排序好了，需要提高查找效率的话，考虑使用二分法，查找第一个满足`nums[i]<i`。<br>
+**实现代码**
+```java
+public int hIndex(int[] citations) {
+    if (citations == null || citations.length == 0) {
+        return 0;
+    }
+
+    int length = citations.length;
+    int left = 0;
+    int right = length - 1;
+    while (left <= right) {
+        int mid = (left + right) >> 1;
+//            即使数组中出现重复的现象，也可以直接返回，因为下一次迭代，nums[i]--,但是hIndex++
+        if (citations[mid] == length - mid) {
+            return length - mid;
+        } else if (citations[mid] > length - mid) {
+            right = mid - 1;
+        } else {
+            left = mid + 1;
+        }
+    }
+    return length - left;
+}
+```
+
+#### [Largest Number](https://leetcode.com/problems/largest-number/description/)
+**解题思路**
+自定义排序规则，使用字典序排序即可。<br>
+**实现代码**
+```java
+public String largestNumber(int[] nums) {
+    if(nums == null || nums.length ==0){
+        return "";
+    }
+
+    int length = nums.length;
+    String[] strings = new String[length];
+    for (int i = 0; i < length; i++) {
+        strings[i] = ""+nums[i];
+    }
+
+//        自定义字典序排序规则
+    Arrays.sort(strings, new Comparator<String>() {
+//         默认系统调用比较的是 (o1+o2).compareTo(o2+o1)
+        @Override
+        public int compare(String o1, String o2) {
+            return (o2+o1).compareTo(o1+o2);
+        }
+    });
+
+//        0开头，整个数组都是0
+    if(strings[0].equals("0")){
+        return "0";
+    }
+
+    return String.join("",strings);
+}
+```
+
+---
+#### [Sort List](https://leetcode.com/problems/sort-list/description/)
+**解题思路**
+在O(nlogn)的时间复杂度进行排序，常见有快排、堆排和归并排序；前两者对元素的下标操作要求较为灵活，
+选择归并排序。先不断split,后调用merge归并<br>
+**实现代码**
+```java
+public ListNode sortList(ListNode head){
+    if(head == null || head.next == null){
+        return head;
+    }
+    ListNode mid = split(head);
+    ListNode node1 = sortList(head);
+    ListNode node2 = sortList(mid);
+   return mergeTwoLists(node1,node2);
+}
+
+private ListNode split(ListNode head){
+    if(head == null || head.next==null){
+        return head;
+    }
+    
+//        设置快慢指针
+    ListNode fast = head;
+    ListNode slow = head;
+    ListNode slowPre = null;
+    while(fast!=null && fast.next!=null){
+        fast = fast.next.next;
+        slowPre = slow;
+        slow = slow.next;
+    }
+    
+    slowPre.next = null;
+    return slow;
+}
+
+public static ListNode mergeTwoLists(ListNode l1, ListNode l2) {
+//        check validation
+    if (l1 == null && l2 == null) {
+        return null;
+    } else if (l1 == null) {
+        return l2;
+    } else if (l2 == null) {
+        return l1;
+    }
+
+//        设置临时节点
+    ListNode tmpHead = new ListNode(0);
+    ListNode cur = tmpHead;
+
+    ListNode p = l1;
+    ListNode q = l2;
+    while (p != null && q != null) {
+        if (p.val <= q.val) {
+            cur.next = p;
+            p = p.next;
+        } else {
+            cur.next = q;
+            q = q.next;
+        }
+        cur = cur.next;
+    }
+//        剩余部分合并
+    if (p != null) {
+        cur.next = p;
+    }
+    if (q != null) {
+        cur.next = q;
+    }
+    return tmpHead.next;
 }
 ```
 

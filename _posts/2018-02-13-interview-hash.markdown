@@ -86,8 +86,58 @@ public boolean containsNearbyDuplicate(int[] nums, int k) {
     return false;
 }
 ```
+
 ---
-[Contains duplicate III使用treeSet题解](http://julyerr.club/2018/02/13/interview-set/#contains-duplicate-iii)
+
+#### [Contains duplicate III使用treeSet题解](http://julyerr.club/2018/02/13/interview-set/#contains-duplicate-iii)
+
+---
+#### [Valid Anagram](https://leetcode.com/problems/valid-anagram/description/)
+**解题思路**
+先一遍将char的次数统计出来，后一次遍历的时候次数减少1，最后一遍的时候判断是否全为0.<br>
+**实现代码**
+```java
+public boolean isAnagram(String s, String t) {
+    if (s == null || t == null || s.length() != t.length()) {
+        return false;
+    }
+
+    Map<Character, Integer> map = new HashMap<>();
+//        第一次遍历的时候统计次数
+    for (int i = 0; i < s.length(); i++) {
+        char c = s.charAt(i);
+        int times = 0;
+        if (map.get(c) != null) {
+            times = map.get(c);
+        }
+        map.put(c, times);
+    }
+
+//        第二次遍历的时候次数--，并判断
+    for (int i = 0; i < t.length(); i++) {
+        char c = t.charAt(i);
+        if (map.get(c) == null) {
+            return false;
+        }
+        int times = map.get(c);
+        if (times == 0) {
+            return false;
+        }
+        map.put(c, --times);
+    }
+
+//        最后一遍判断0
+    for (Integer integer :
+            map.values()) {
+        if (integer != 0) {
+            return false;
+        }
+    }
+    return true;
+}
+```
+
+
 
 ---
 ### 参考资料
