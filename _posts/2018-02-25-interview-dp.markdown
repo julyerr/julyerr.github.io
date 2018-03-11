@@ -129,13 +129,33 @@ public int uniquePathsWithObstacles(int[][] obstacleGrid) {
 }
 ```
 
+---
+#### [Unique Binary Search Trees](https://leetcode.com/problems/unique-binary-search-trees/description/)
 **解题思路**
-<br>
+树的种类数等于左边孩子种类数*右边孩子种类数，使用动态规划方式。
+dp[i]代表以i为root的种类数，针对左右dp[j]进行统计计算，具体参见实现代码。<br>
 **实现代码**
+
 ```java
+public int numTrees(int n) {
+    if (n < 3) {
+        return n;
+    }
 
+    int[] dp = new int[n + 1];
+    dp[0] = dp[1] = 1;
+    dp[2] = 2;
+    for (int i = 3; i <= n; i++) {
+        int tmp = 0;
+//            统计以不同元素为root的情况数
+        for (int j = 0; j < i; j++) {
+            tmp += dp[j] * dp[i - 1 - j];
+        }
+        dp[i] = tmp;
+    }
+    return dp[n];
+}
 ```
-
 
 ---
 ### 参考资料

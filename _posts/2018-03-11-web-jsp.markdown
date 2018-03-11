@@ -1,0 +1,233 @@
+---
+layout:     post
+title:      "JSP 总结"
+subtitle:   "JSP 总结"
+date:       2018-03-11 8:00:00
+author:     "julyerr"
+header-img: "img/web/servlet/jsp.jpeg"
+header-mask: 0.5
+catalog:    true
+tags:
+    - web
+    - servlet
+    - jsp
+---
+
+>[上篇文章](http://julyerr.club/2018/03/11/web-servlet/)总结了servlet常见知识点，有了servlet基础，理解和使用jsp就相对简单一点。
+
+### JSP简介 
+
+**JSP是什么**<br>
+JSP全称Java Server Pages，是一种动态网页开发技术,它使用JSP标签在HTML网页中插入Java代码。JSP本质还是servlet，web服务器会对jsp中的标签进行解析然后生成servlet的java文件。<br>
+
+**JSP 和 servlet 比较**<br>
+
+jsp中使用标签代替了很多繁琐的java语句，就使用方面而言jsp更擅长表现于页面显示,servlet更擅长于逻辑控制;Servlet中没有内置对象，Jsp中的内置对象都是必须通过HttpServletRequest对象，HttpServletResponse对象以及HttpServlet对象得到.<br>
+
+现在已经不太流行使用jsp进行页面开发，而是使用其他的模板引擎例如freemarker、Velocity等(以后笔者也会添加文章介绍后freemarker)，它们之间的区别[参见](http://blog.csdn.net/weixin_38894231/article/details/78249084)。mvc式web开发模式流行模式,由于jsp中可以直接对后台数据库等访问，很容易导致软件的逻辑混乱，因此在大型项目中使用越来越少。
+
+
+---
+#### Jsp的九大对象
+
+- **request**  来自客户端的请求
+- **response** 对客户端的响应
+- **out** 向客户端输出数据,字节流.如out.print("jsp");
+- **session** 用于保存用户信息,跟踪用户行为
+- **application** 可存放全局变量,开始于服务器的启动,直到服务器的关闭.
+
+application(服务器关闭时失效)>session(浏览器关闭时失效)>request(只能用于两个跳转页面之间)
+
+- **page** 表示当前页面这个实体
+- **exception** 代表运行时的异常
+- **pageContext** 提供了对JSP页面内所有的对象及名字空间的访问
+- **config** 对应的servlet的配置
+
+---
+#### jsp七大动作
+
+- **include** 用于动态包含
+	**动态包含和静态包含比较**<br>
+	- 静态包含:`<%@ include file="被包含页面"%>`,主文件在转换成为java文件的时候，将包含文件的内容“复制”进来，然后作为一个整体编译,最终编译为一个java文件。多个文件中不能出现相同的变量名称。
+	- 动态包含：`<jsp:include page="被包含页面" flush="true">`，各个jsp文件分别转换、分别编译，形成多个java文件。执行class阶段，相当于调用不同的jsp，不同文件允许出现相同变量。
+- **useBean** 声明使用其他对象
+	`<jsp:useBean id="对象名" class="包名.类名" scope="作用范围(request/page/application/session)"/>`
+- **getProperty** 从对象中取出属性值
+	`<jsp:getProperty name="javaBean对象" property="javaBean对象属性名" />`
+
+- **setProperty** 为对象设置属性值
+	`<jsp:setProperty name="javaBean对象" property="javaBean对象属性名" value="值"/>`
+
+- **param 传递参数**
+
+```jsp
+<jsp:include page="转向页面的url" > 
+
+           <jsp:param   name="参数名1" value="参数值1"> 
+
+           <jsp:param   name="参数名2" value="参数值2"> 
+
+           ........... 
+
+ </jsp:include> 
+
+<jsp:forward page="转向页面的url" > 
+
+           <jsp:param   name="参数名1" value="参数值1"> 
+
+           <jsp:param   name="参数名2" value="参数值2"> 
+
+           ........... 
+
+</jsp:forward>
+```	
+
+- **forward 服务器端跳转页面**
+
+`<jsp:forward page="login.jsp" />`
+
+- **plugin** 指定在客户端运行的插件，不太常用
+
+---
+#### JSP三大指令
+
+- **page指令** 设置页面的属性等,如制定页面编码和导入包
+
+```jsp
+<%@ page language="java" contentType="text/html;charset=gbk" pageEncoding="gbk" %>
+<%@ page import="java.util.*,java.text.*" %>
+```
+
+- **include指令** 静态包含 
+- **taglib指令**  引入标签库的定义
+
+`<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>`
+
+---
+#### jsp环境搭建
+
+基于servlet的开发环境之上(具体参见上文的servlet开发环境搭建),只需要引入对应的jsp包即可
+
+```xml
+<dependency>
+    <groupId>javax.servlet.jsp</groupId>
+    <artifactId>jsp-api</artifactId>
+    <version>2.1</version>
+    <scope>provided</scope>
+</dependency>
+```
+
+```html
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8" %>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head></head>
+<body>
+<%
+    out.println("hello jsp");
+%>
+</body></html>
+```
+---
+#### jstl 标签库
+
+JSP标准标签库（JSTL）是一个JSP标签集合，它封装了JSP应用的通用核心功能，比如迭代、条件判断、SQL标签等.<br>
+
+**引入jstl的标签库包**
+
+```xml
+<!-- JSTL -->
+    <dependency>
+        <groupId>javax.servlet</groupId>
+        <artifactId>jstl</artifactId>
+        <version>1.2</version>
+    </dependency>
+<!-- 标准库支持 -->    
+    <dependency>
+        <groupId>taglibs</groupId>
+        <artifactId>standard</artifactId>
+        <version>1.1.2</version>
+    </dependency>
+```
+
+下面只是简单的介绍各个库标签，具体[参见](http://www.runoob.com/jsp/jsp-jstl.html)<br>
+
+**核心标签库**
+
+```html
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<c:out>	用于在JSP中显示数据，就像<%= ... >
+<c:set>	用于保存数据
+<c:forEach>	基础迭代标签，接受多种集合类型
+```
+
+**格式化标签**<br>
+格式化并输出文本、日期、时间、数字
+
+```html
+<%@ taglib prefix="fmt"  uri="http://java.sun.com/jsp/jstl/fmt" %>
+<fmt:formatNumber>	使用指定的格式或精度格式化数字
+<fmt:formatDate>	使用指定的风格或模式格式化日期和时间
+<fmt:requestEncoding>	设置request的字符编码
+```
+
+**SQL标签**<br>
+
+提供了与关系型数据库（Oracle，MySQL，SQL Server等等）进行交互的标签
+
+```html
+<%@ taglib prefix="sql" uri="http://java.sun.com/jsp/jstl/sql" %>
+<sql:setDataSource>	指定数据源
+<sql:query>	运行SQL查询语句
+<sql:update>	运行SQL更新语句
+<sql:param>	将SQL语句中的参数设为指定值
+<sql:dateParam>	将SQL语句中的日期参数设为指定的java.util.Date 对象值
+<sql:transaction>	在共享数据库连接中提供嵌套的数据库行为元素，将所有语句以一个事务的形式来运行
+```
+
+**JSTL函数**<br>
+
+包含一系列标准函数
+
+```html
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+fn:contains()	测试输入的字符串是否包含指定的子串
+fn:indexOf()	返回指定字符串在输入字符串中出现的位置
+fn:endsWith()	测试输入的字符串是否以指定的后缀结尾
+```
+---
+#### jsp表达式语言
+
+简化对存储在JavaBean中的数据访问操作
+
+```html
+<jsp:text>
+Box Perimeter is: ${2*box.width + 2*box.height}
+</jsp:text>
+```
+
+**函数访问**<br>
+
+格式如下 `${ns:func(param1, param2, ...)}`，ns代表命名空间，如`${fn:length("Get my length")}`
+
+**隐含对象**
+
+- **pageScope**	    page 作用域
+- **requestScope**	request 作用域
+- **sessionScope**	session 作用域
+- **applicationScope**	application 作用域
+- **param**	Request对象的参数，字符串
+- **paramValues**	Request对象的参数，字符串集合
+- **header**	HTTP 信息头，字符串
+- **headerValues**	HTTP 信息头，字符串集合
+- **initParam**	上下文初始化参数
+- **cookie**	Cookie值
+- **pageContext**	当前页面的pageContext
+
+pageScope，requestScope，sessionScope，applicationScope变量用来访问存储在各个作用域层次的变量。
+
+---
+### 参考资料
+- [JSP 教程](http://www.runoob.com/jsp/jsp-intro.html)
+- [JSP页面的静态包含和动态包含使用方法](http://www.jb51.net/article/133831.htm)
+- [jsp和servlet知识点总结](http://www.cnblogs.com/yezhenhan/archive/2013/03/27/2985233.html)

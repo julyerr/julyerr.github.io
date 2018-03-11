@@ -102,6 +102,7 @@ private ListNode cutMid(ListNode head) {
 }
 ```
 
+
 ---
 #### [Balanced Binary Tree](https://leetcode.com/problems/balanced-binary-tree/description/)
 **解题思路**
@@ -132,6 +133,7 @@ private boolean balancedHelp(TreeNode node, int[] height) {
 }
 ```
 
+---
 ### 二叉树的遍历
 
 如果使用递归的方式遍历还是比较简单的，当然提高一点要求，下面的实现均是非递归的形式。
@@ -193,6 +195,7 @@ public List<Integer> inorderTraversal(TreeNode root) {
 }
 ```
 
+---
 #### [Binary Tree Preorder Traversal](https://leetcode.com/problems/binary-tree-preorder-traversal/description/)
 **解题思路**
 实现思路和上题一致，只不过元素的添加顺序提前了。
@@ -252,6 +255,51 @@ public List<Integer> preorderTraversal(TreeNode root) {
 }
 ```
 
+
+---
+#### [Validate Binary Search Tree](https://leetcode.com/problems/validate-binary-search-tree/description/)
+**解题思路**
+只需要验证树的中序遍历是否递增<br>
+**实现代码**
+
+```java
+public boolean isValidBST(TreeNode root) {
+    if (root == null) {
+        return true;
+    }
+
+    Stack<TreeNode> stack = new Stack<>();
+    TreeNode p = root;
+    int preVal = 0;
+    boolean first = true;
+    while (p != null || !stack.isEmpty()) {
+//            递归left
+        while (p != null) {
+            stack.push(p);
+            p = p.left;
+        }
+        if (!stack.isEmpty()) {
+//                弹出元素并进行添加
+            p = stack.pop();
+            if(first){
+                preVal = p.val;
+                first = false;
+            }else{
+                if (p.val <= preVal) {
+                    return false;
+                } else {
+                    preVal = p.val;
+                }
+            }
+//                迭代right
+            p = p.right;
+        }
+    }
+    return true;
+}
+```
+
+---
 #### [Binary Tree Postorder Traversal](https://leetcode.com/problems/binary-tree-postorder-traversal/description/)
 
 **解题思路**
@@ -428,6 +476,57 @@ private void dfs(TreeNode node, List<TreeNode> cur) {
 ```
 
 ---
+#### [Sum Root to Leaf Numbers](https://leetcode.com/problems/sum-root-to-leaf-numbers/description/)
+**解题思路**
+在上题所有root到叶子节点的基础上添加了求和的功能。求和还有一种更加简洁的写法，将父亲节点的值一路传入到
+叶子节点，然后计算返回。<br>
+**实现代码**
+
+```java
+//路径法求解
+private int sum =0;
+public int sumNumbers(TreeNode root) {
+    dfs(root,new ArrayList<>());
+    return sum;
+}
+
+private void dfs(TreeNode node,List<Integer> cur){
+    if(node == null){
+        return;
+    }
+    cur.add(node.val);
+    if(node.left==null&&node.right==null){
+        int tmp = 0;
+        for (int i = 0; i < cur.size(); i++) {
+            tmp = 10*tmp+cur.get(i);
+        }
+        sum += tmp;
+    }
+    dfs(node.left,cur);
+    dfs(node.right,cur);
+    cur.remove(cur.size()-1);
+}
+
+//    将根节点一路的值传递到叶子节点
+public int sumNumbers(TreeNode root) {
+    return dfs(root, 0);
+}
+
+private int dfs(TreeNode node, int parantVal) {
+//        部分子节点为空
+    if (node == null) {
+        return 0;
+    }
+    int val = parantVal * 10 + node.val;
+//        已经是叶子节点，直接返回值
+    if (node.left == null && node.right == null) {
+        return val;
+    }
+    return dfs(node.left, val) + dfs(node.right, val);
+}
+```
+
+---
 #### [Binary Tree Right Side View](https://leetcode.com/problems/binary-tree-right-side-view/description/)
 **解题思路**
 层次遍历的变种，返回结果并不是将整层元素添加进来，而是将整层元素的最后一个添加进来。<br>
@@ -460,6 +559,7 @@ public List<Integer> rightSideView(TreeNode root) {
     return rt;
 }
 ```
+
 
 ---
 #### [Binary Tree Zigzag Level Order Traversal](https://leetcode.com/problems/binary-tree-zigzag-level-order-traversal/description/)
@@ -504,6 +604,177 @@ public List<List<Integer>> zigzagLevelOrder(TreeNode root) {
     return rt;
 }
 ```
+
+---
+### Path Sum系列
+#### [Path Sum](https://leetcode.com/problems/path-sum/description/)
+**解题思路**
+sum减去当下的值，然后递归；只有在叶子节点才能进行true和false判断。<br>
+**实现代码**
+
+```java
+public boolean hasPathSum(TreeNode root, int sum) {
+    if (root == null) {
+        return false;
+    }
+    sum -= root.val;
+//        只有在当前节点没有左右孩子节点的时候才可能进行返回判断
+    if (root.left == null && root.right == null) {
+        return sum == 0 ? true : false;
+    }
+    return hasPathSum(root.left, sum) || hasPathSum(root.right, sum);
+}
+```
+
+#### [Path Sum II](https://leetcode.com/problems/path-sum-ii/description/)
+**解题思路**
+在上题的基础上，需要保留每条路径经过的元素值。为了节省空间，递归该节点的时候将元素添加进来；递归完毕，将该元素值删除。<br>
+**实现代码**
+
+```java
+List<List<Integer>> rt = new ArrayList<>();
+
+public List<List<Integer>> pathSum(TreeNode root, int sum) {
+    if (root == null) {
+        return rt;
+    }
+    dfs(root, new ArrayList<Integer>(), sum);
+    return rt;
+}
+
+private void dfs(TreeNode node, List<Integer> cur, int target) {
+    if (node == null) {
+        return;
+    }
+
+    target -= node.val;
+//        添加进当前节点
+    cur.add(node.val);
+//        只有在叶子节点的时候再进行判断
+    if (node.left == null && node.right == null) {
+        if (target == 0) {
+            rt.add(new ArrayList<>(cur));
+        }
+    }
+    dfs(node.left, cur, target);
+    dfs(node.right, cur, target);
+//        删除当下节点，不影响后面操作
+    cur.remove(cur.size() - 1);
+}
+```
+
+
+---
+#### [Populating Next Right Pointers in Each Node](https://leetcode.com/problems/populating-next-right-pointers-in-each-node/description/)
+**解题思路**
+比较容易的想法是在层次遍历的基础上，调整同一层上next指针的方向；当然也可以使用递归的方式调整指针，具体参见实现代码。<br>
+**实现代码**
+
+```java
+//层次遍历基础上调整
+public void connect(TreeLinkNode root) {
+    if (root == null) {
+        return;
+    }
+
+    LinkedList<TreeLinkNode> cur, next;
+    cur = new LinkedList<>();
+    cur.add(root);
+
+    while (!cur.isEmpty()) {
+        next = new LinkedList<>();
+        int size = cur.size();
+        for (int i = 0; i < size; i++) {
+            TreeLinkNode first = cur.get(i);
+            if (first.left != null) {
+                next.add(first.left);
+            }
+            if (first.right != null) {
+                next.add(first.right);
+            }
+            if (i == size - 1) {
+                break;
+            }
+            first.next = cur.get(i + 1);
+        }
+        cur.get(size - 1).next = null;
+
+        cur = next;
+    }
+}
+
+//    递归方式
+public void connect(TreeLinkNode root) {
+    if (root == null) {
+        return;
+    }
+//        调整当前节点
+    if (root.left != null && root.right != null) {
+        root.left.next = root.right;
+    }
+    if (root.right != null &&root.next !=null && root.next.left != null) {
+        root.right.next = root.next.left;
+    }
+//        递归调整left,right
+    connect(root.left);
+    connect(root.right);
+}
+```
+
+
+
+---
+#### [Maximum Depth of Binary Tree](https://leetcode.com/problems/maximum-depth-of-binary-tree/description/)
+**解题思路**
+递归返回左右节点中更大高度的节点即可。<br>
+**实现代码**
+
+```java
+public int maxDepth(TreeNode root) {
+    if (root == null) {
+        return 0;
+    }
+    int left = maxDepth(root.left);
+    int right = maxDepth(root.right);
+
+    return Math.max(left, right) + 1;
+}
+```
+
+---
+#### [Minimum Depth of Binary Tree](https://leetcode.com/problems/minimum-depth-of-binary-tree/description/)
+**解题思路**
+这道题关键是理解二叉树最小高度的含义，有以下情况：<br>
+
+```
+node == null -> 0
+node.left == null && node.right == null -> 1
+node.left != null && node.right == null -> minDepth(node.left)+1
+node.left == null && node.right != null -> minDepth(node.right)+1
+node.left != null && node.right != null -> min(minDepth(node.left),minDepth(node.right))+1
+```
+
+<br>
+**实现代码**
+
+```java
+public int minDepth(TreeNode root) {
+    if (root == null) {
+        return 0;
+    }
+//        对应各种情况处理
+    if (root.left == null && root.right == null) {
+        return 1;
+    } else if (root.left != null && root.right == null) {
+        return 1 + minDepth(root.left);
+    } else if (root.left == null && root.right != null) {
+        return 1 + minDepth(root.right);
+    }
+
+    return Math.min(minDepth(root.left), minDepth(root.right)) + 1;
+}
+```
+
 
 ---
 #### [Convert Sorted Array to Binary Search Tree](https://leetcode.com/problems/convert-sorted-array-to-binary-search-tree/description/)
@@ -597,6 +868,275 @@ public void flatten(TreeNode root) {
 }
 ```
 
+---
+#### [Invert Binary Tree](https://leetcode.com/problems/invert-binary-tree/description/)
+**解题思路**
+递归方式，先交换左右节点然后递归对左右节点进行处理<br>
+**实现代码**
+
+```java
+public TreeNode invertTree(TreeNode root) {
+    if (root == null) {
+        return null;
+    }
+//        先交换左右节点
+    TreeNode tmp = root.left;
+    root.left = root.right;
+    root.right = tmp;
+//        递归调用左右节点处理
+    invertTree(root.left);
+    invertTree(root.right);
+    return root;
+}
+```
+
+---
+#### [Same Tree](https://leetcode.com/problems/same-tree/description/)
+**解题思路**
+使用递归方式判断left，right是否相等。<br>
+**实现代码**
+
+```java
+public boolean isSameTree(TreeNode p, TreeNode q) {
+//        直接如此判断，判断的是同一个对象，显然不行
+//        if (p != q) {
+//            return false;
+//        }
+    if (p == null && q == null) {
+        return true;
+    } else if (p == null || q == null) {
+        return false;
+    } else if (p.val != q.val) {
+        return false;
+    }
+    return isSameTree(p.left, q.left) && isSameTree(p.right, q.right);
+}
+```
+
+---
+#### [Symmetric Tree](https://leetcode.com/problems/symmetric-tree/description/)
+**解题思路**
+类似的，可以使用层次遍历判断同一层的元素是否对程；此题也可以使用递归的方式进行，在上题的基础上添加一些技巧。<br>
+**实现代码**
+
+```java
+public boolean isSymmetric(TreeNode root) {
+    if (root == null) {
+        return true;
+    }
+    return issymmetric(root.left, root.right);
+}
+
+private boolean issymmetric(TreeNode p, TreeNode q) {
+    if (p == null && q == null) {
+        return true;
+    } else if (p == null || q == null) {
+        return false;
+    } else if (p.val != q.val) {
+        return false;
+    }
+    return issymmetric(p.left, q.right) && issymmetric(p.right, q.left);
+}
+```
+
+---
+#### [Kth Smallest Element in a BST](https://leetcode.com/problems/kth-smallest-element-in-a-bst/description/)
+**解题思路**
+BST的中序遍历是有序的，只需要遍历到第k个节点就可以返回该值。<br>
+**实现代码**
+
+```java
+public int kthSmallest(TreeNode root, int k) {
+    Stack<TreeNode> stack = new Stack<>();
+    TreeNode p = root;
+    while (p != null || !stack.isEmpty()) {
+//            递归left
+        while (p != null) {
+//                添加元素
+            stack.push(p);
+            p = p.left;
+        }
+        if (!stack.isEmpty()) {
+//                弹出元素
+            p = stack.pop();
+            k--;
+            if (k == 0) {
+                return p.val;
+            }
+//                迭代right
+            p = p.right;
+        }
+    }
+    return -1;
+}
+```
+
+---
+#### [Lowest Common Ancestor of a Binary Search Tree](https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/description/)
+**解题思路**
+笔者开始想到的思路是，分别记录根节点到p、q的节点信息，然后比较最后一个相同的节点（有点类似求解List的最后一个公共节点）。但是这道题有还更优的解题方法，BST已经排好序，最低公共节点其实就是两节点之间的点。<br>
+**实现代码**
+
+```java
+public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
+    if (root == null || p == null || q == null) {
+        return null;
+    }
+
+    int min = p.val > q.val ? q.val : p.val;
+    int max = p.val + q.val - min;
+
+    while (root != null) {
+//            在root的右边
+        if (root.val < min) {
+            root = root.right;
+//            在root的左边
+        } else if (root.val > max) {
+            root = root.left;
+//             处于两者之间
+        } else {
+            return root;
+        }
+    }
+    return null;
+}
+```
+
+---
+#### [Lowest Common Ancestor of a Binary Tree](https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/description/)
+**解题思路**
+可以按照上题所说的传统记录路径的方式解题。下面有一种更加高效的解题思路：<br>
+从根节点开始向下搜索，对每个节点进行判断：
+
+- l：node的左子树是否出现过p或q
+- r：node的右子树是否出现过p或q
+如果l和r都不是null，则该结点即为lca<br>
+**实现代码**
+
+```java
+public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
+//        root等于p或者q可以直接返回
+    if (root == null || root == p || root == q) {
+        return root;
+    }
+
+    TreeNode left = lowestCommonAncestor(root.left, p, q);
+    TreeNode right = lowestCommonAncestor(root.right, p, q);
+
+//        左右节点分别包含p,q
+    if (left != null && right != null) {
+        return root;
+    }
+
+    return left == null ? right : left;
+}
+```
+
+---
+#### [Unique Binary Search Trees II](https://leetcode.com/problems/unique-binary-search-trees-ii/description/)
+**解题思路**
+与[上题](http://julyerr.club/018/02/25/interview-dp/#unique-binary-search-trees)使用dp求解情况数不同，需要求解出具体的树并返回。此题非常巧妙地使用递归，先将左右子树构建完成，然后针对不同的元素为root节点，添加进结果即可，具体参见实现代码。<br>
+**实现代码**
+
+```java
+public List<TreeNode> generateTrees(int n) {
+    if (n < 1) {
+        return new ArrayList<>();
+    }
+    int[] nums = new int[n];
+    for (int i = 0; i < n; i++) {
+        nums[i] = i + 1;
+    }
+//       共用一个数组
+    return dfs(nums, 0, n);
+}
+
+public List<TreeNode> dfs(int[] nums, int start, int end) {
+    List<TreeNode> rt = new ArrayList<>();
+    if (start >= end) {
+//            null也需要添加进来遍历
+        rt.add(null);
+        return rt;
+    }
+
+//        以不同元素为root，构建tree数组
+    for (int i = start; i < end; i++) {
+        for (TreeNode left :
+                dfs(nums, start, i)) {
+            for (TreeNode right :
+                    dfs(nums, i + 1, end)) {
+                TreeNode node = new TreeNode(nums[i]);
+                node.left = left;
+                node.right = right;
+                rt.add(node);
+            }
+        }
+    }
+    return rt;
+}
+```
+
+---
+#### [Serialize and Deserialize Binary Tree](https://leetcode.com/problems/serialize-and-deserialize-binary-tree/description/)
+**解题思路**
+说白了，题目要求就是现将一棵树自定义格式转换成字符串，然后能够从该字符串中还原出原来这棵树。
+提示给出了一种实现，给定节点nums[i],在不超过范围前提之下，nums[2*i+1]为left,nums[2*i+2]=right。
+技巧在于节点不论是否为null,一起添加进队列。<br>
+**实现代码**
+
+```java
+// Encodes a tree to a single string.
+public String serialize(TreeNode root) {
+    if (root == null) {
+        return "";
+    }
+    Queue<TreeNode> queue = new LinkedList<>();
+    queue.add(root);
+    StringBuilder stringBuilder = new StringBuilder();
+    while (!queue.isEmpty()) {
+        TreeNode tmp = queue.poll();
+        if (tmp == null) {
+            stringBuilder.append(",").append("null");
+        } else {
+            stringBuilder.append(",").append(tmp.val);
+//                不论是否null，直接添加进来
+            queue.add(tmp.left);
+            queue.add(tmp.right);
+        }
+    }
+//        去除第一个,
+    return stringBuilder.toString().substring(1);
+}
+
+// Decodes your encoded data to tree.
+public TreeNode deserialize(String data) {
+//        比较坑的一点是，"".split()之后返回的还是""
+    if (data == null || data.length() == 0) {
+        return null;
+    }
+    String[] strings = data.split(",");
+
+//        先建立node数组
+    int length = strings.length;
+    TreeNode[] nodes = new TreeNode[length];
+    for (int i = 0; i < length; i++) {
+        if (!strings[i].equals("#")) {
+            nodes[i] = new TreeNode(Integer.parseInt(strings[i]));
+        }
+    }
+//        记录有效的parent
+    int parent = 0;
+    for (int i = 0; parent * 2 + 2 < length; i++) {
+//            调整左右关系
+        if (nodes[i] != null) {
+            nodes[i].left = nodes[2 * parent + 1];
+            nodes[i].right = nodes[2 * parent + 2];
+            parent++;
+        }
+    }
+    return nodes[0];
+}
+```
 
 ---
 ### 参考资料

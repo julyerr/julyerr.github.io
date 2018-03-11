@@ -9,6 +9,7 @@ header-mask: 0.5
 catalog:    true
 tags:
     - net
+    - web
     - http
 ---
 
@@ -126,6 +127,8 @@ P3P：用于跨域设置Cookie
 **cookie**<br>
 将状态信息保存在用户浏览器中，每次请求的时候添加对应的cookie信息
 ![](/img/net/app/http/cookie.png)
+
+浏览器一般只允许存放300个Cookie，每个站点最多存放20个Cookie，每个Cookie的大小限制为4KB。<br>
 
 **session**<br>
 用户的信息保存在服务器端，通常用散列表的结构存储，key即为session-id。
