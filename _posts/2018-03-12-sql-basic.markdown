@@ -1,0 +1,404 @@
+---
+layout:     post
+title:      "SQL总结"
+subtitle:   "SQL总结"
+date:       2018-03-13 8:00:00
+author:     "julyerr"
+header-img: "img/sql/sql.png"
+header-mask: 0.5
+catalog:    true
+tags:
+    - sql
+---
+
+本文打算就sql语句使用、事务、锁以及数据库范式等方面进行总结。
+
+### sql常用语句
+
+首先看看约束的概念<br>
+
+**约束(Constraints)**<br>
+
+规定表中的数据规则，有如下约束
+
+- **NOT NULL** 指示某列不能存储 NULL 值。
+- **UNIQUE**   保证某列的每行必须有唯一的值。
+- **PRIMARY KEY**  主键约数，每个表只有一个，等同于NOT NULL和UNIQUE的结合
+- **FOREIGN KEY** 保证一个表中的数据匹配另一个表中的值的参照完整性<br>
+
+```sql
+foreign key (<属性名表>) refrences <父表名> (<属性名表>) [on action 实现策略]
+实现策略：
+	restrict: 默认设置
+	cascade: 级联
+	set null:
+```
+
+- **CHECK** 保证列中的值符合指定的条件
+- **DEFAULT** 规定没有给列赋值时的默认值
+
+
+
+sql语句可以分为**三种**
+
+- DDL(Data Definition Language数据定义语句)，如create、drop
+- DML(Data Manipulation Language数据操作语句),如insert、update、delete
+- DQL(Data Query Language数据查询语句),如select
+
+
+**创建表**
+
+```sql
+create table <table_name> 
+	<列名><数据类型>[<默认值>|<identity>] [<完整性约束(not null|null|unique)>]
+
+CREATE TABLE IF NOT EXISTS Course(Cno CHAR(1) NOT NULL,Cname VARCHAR(20) NOT NULL,Credit SMALLINT);
+```
+
+**修改表**
+
+```sql
+alter table <tableName> 
+	[add <列名><数据类型>[列的完整性约束]]|[add <表的完整性约束>]	
+	[alter column <列名><数据类型>]
+	[drop column <列名>]
+	[drop constrains <完整性约束>]
+
+ALTER TABLE Student ADD Nation VARCHAR(20);	
+```
+
+**删除表**
+
+```sql
+drop table <table1>[,<table2>]	
+
+DROP TABLE Student;
+```
+
+**插入数据**
+
+```sql
+insert into <tableName>[(属性列表清单)] values(<...>)
+
+INSERT INTO Course VALUES("1",'数据库',4),("2",'离散数学',3);
+```
+
+**更改数据**
+
+```sql
+delete from <tableName> [where <condition>]
+
+UPDATE Grade SET Gmark=70 WHERE Sno="2001110";
+```
+
+#### 查询数据
+
+```sql
+select <distinct|all> <expresson> [[as] aliasName] from tableName
+	[where <condition>]	
+	[group by <columnName> [having <expresson>]]
+	[order by <columnName> [asc|desc]]
+```
+
+**子查询**<br>
+查询到结果作为另一个的输入域		
+
+```sql
+-查询选修了3门以上课程的学生学号。
+SELECT Sno,Count(Sno) AS "选课程数" FROM Grade GROUP BY Sno HAVING(COUNT(Sno) > 3);
+
+-查询全体学生信息，要求查询结果按班级号升序排列同一班级按年龄降序排列；
+SELECT * FROM Student ORDER BY Clno,Sage DESC;
+
+-找出学生李勇所在班级的学生人数；
+SELECT COUNT(*) AS '李勇班级人数' FROM Student WHERE Clno = (
+	SELECT Clno FROM Student WHERE Sname='李勇'
+	);
+
+```
+
+**连接查询**
+
+- **内连接**
+
+```sql
+select col1 from talbe1 inner join table2 
+		on table1.col = table2.col 		
+
+select   a.*,b.*   from   a   inner   join   b     on   a.id=b.parent_id   		
+```
+
+- **外连接**
+
+```sql
+-左外连接
+select co11 from table1 left outer join table2
+		on table1.col = table2.col
+
+select   a.*,b.*   from   a   left   join   b     on   a.id=b.parent_id
+
+-右外连接
+select co11 from table1 right outer join table2
+		on table1.col = table2.col	
+
+
+```
+
+**exist 关键**
+
+```sql
+-查询一个项目都没有参加的员工
+select * from employee where not exits(
+	select * from item_pro where item_pro.eno = employee.eno );
+
+-查询参加了所有项目的员工
+select * from employee where not exits(
+	select * from project where not exits(
+		select * from item_pro where employee.eno = item_pro.eno and project.pro = item_pro.pro));
+```
+
+**授权**
+
+```sql
+grant <权限清单> [on <对象类型> <对象名>] to <用户> [with grant options]				
+
+GRANT ALL PRIVILEGES ON Students TO U1;
+
+```	
+
+**收回权限**
+
+```sql
+revoke <权限清单> [on <对象类型> <对象名>] from <用户> [cascade]
+
+GRANT SELECT ON Students FROM U1;
+```
+
+---
+### 索引
+
+提供查询的快捷方式，可以从多个角度理解索引的概念
+
+**物理存储**
+
+- **聚集索引** 索引在物理上是连续存储的
+- **非聚集索引** 非聚集索引是逻辑上的连续，物理存储并不连续,具体可以[参考](http://julyerr.club/2018/03/09/ds-tree/#myisam和innodb两个存储引擎的索引实现方式)
+
+一张表上只能创建一个聚集索引，但是可以创建多个非聚集索引。<br>
+
+两者适用场景
+
+![](/img/sql/cluster-nocluster.png)
+
+**逻辑角度**
+
+- **主键索引** 主键索引是一种特殊的唯一索引，不允许有空值
+- **普通索引或者单列索引**
+- **多列索引（复合索引）** 指多个字段上创建的索引，只有在查询条件中使用了创建索引时的第一个字段，索引才会被使用
+- **唯一索引或者非唯一索引**
+- **空间索引** 空间索引是对空间数据类型的字段建立的索引
+
+
+**数据结构**
+
+- **B+树索引** 主流的索引实现技术
+- **hash索引** 检索效率非常高，但是仅仅能满足"=","IN"和"<=>"查询，不能使用范围查询;而且只有Memory存储引擎显示支持hash索引
+- **FULLTEXT索引（现在MyISAM和InnoDB引擎都支持）** 主要用来查找文本中的关键字，而不是直接与索引中的值相比较.不能直接使用where，like进行查询，需要使用match against，如`SELECT * FROM table WHERE MATCH(cname1[,cname2…]) AGAINST ('word' MODE )`
+- **R-Tree索引**（用于创建空间索引）
+
+
+**操作**<br>
+
+**建立索引**
+
+```sql
+create [unique][clustered|nonclustered] index <indexName> on <tableName|viewName> 
+
+CREATE INDEX IX_Class ON Student(Clno);
+```
+
+**删除索引**
+
+```sql
+drop index <indexName1>[,<indexName2>]
+
+DROP INDEX IX_Class ON Student;
+```
+
+
+---
+#### 视图
+
+视图是一个虚拟表，其内容由查询定义，当对通过视图看到的数据进行修改时，相应的基本表的数据也要发生变化，同时，若基本表的数据发生变化，则这种变化也可以自动地反映到视图中。<br>
+
+
+**创建视图**
+
+```sql
+
+create view as <selectExpression> [with check option] 
+```
+
+**删除视图**
+
+```sql
+drop view <viewName>
+```
+
+**视图约束**<br>
+设置check option之后，插入和删除数据的时候会自动进行检查，如果不满足条件会抛出异常
+
+```sql
+create view vw_employees as  
+	select employee_id, employee_name, employee_position from employees  
+  	where employee_id>3  
+	with check option;  
+
+-报错
+update vw_employees set employee_id = 3 where employee_id = 4;  	
+```
+
+
+**常见函数**
+
+```sql
+string:
+	LENGTH(str)
+	CONCAT(str1,str2)
+	INSTR(str,substr)
+	SUBStriNG(str,pos[,len])
+	LEFT(str,len)
+	REPLACE(str,from,to)
+	TRIM(str) 字符串的前后的空格
+int:
+	RAND([seed]) 产生随机数的种子
+date:
+	NOW()
+	CURDATE()
+	CURTIME()
+	DATE_FORMAT(date,format)
+	EXTARCT(var type,date)
+	type YEAR_MONTH ...
+```
+
+---
+
+#### 数据库中的锁
+
+**分类**
+
+- 按**操作划分**，可分为DML锁、DDL锁
+	- DML锁（data locks，数据锁），用于保护数据的完整性，其中包括行级锁(Row Locks (TX锁))、表级锁(table lock(TM锁))
+	- DDL锁（dictionary locks，数据字典锁），用于保护数据库对象的结构，如表、索引等的结构定义。
+
+- 按锁的**粒度划分** 可分为表级锁、行级锁、页级锁（mysql）
+
+- 按锁**级别划分** 可分为共享锁、排他锁
+- 按**加锁方式划分** 可分为自动锁、显示锁
+- 按**使用方式划分** 可分为乐观锁、悲观锁
+	- **悲观锁**是指假设并发更新冲突会发生，所以不管冲突是否真的发生，都会使用锁机制。
+	- **乐观锁** 假设不会发生并发冲突，只在提交操作时检查是否违反数据完整性,通常有以下两种实现方式
+		- 使用**数据版本（Version）记录机制实现**，这是乐观锁最常用的一种实现方式。数据版本为数据增加一个版本标识，一般是通过为数据库表增加一个数字类型的 “version” 字段来实现。当读取数据时，将version字段的值一同读出，数据每更新一次，对此version值加一。当我们提交更新的时候，判断数据库表对应记录的当前版本信息与第一次取出来的version值进行比对，如果数据库表当前版本号与第一次取出来的version值相等，则予以更新，否则认为是过期数据。
+		- 使用**时间戳（timestamp）** 实现方式和第一种差不多，同样是在需要乐观锁控制的table中增加一个字段，名称无所谓，字段类型使用时间戳（timestamp）, 和上面的version类似，也是在更新提交的时候检查当前数据库中数据的时间戳和自己更新前取到的时间戳进行对比，如果一致则OK，否则就是版本冲突。
+
+
+**封锁协议**<br>
+约束对象何时申请X锁或S锁、持锁时间、何时释放等的规则<br>
+
+有如下等级
+
+- **一级封锁协议**
+	指事务T在修改数据R之前必须先对其加X锁，直到事务结束才释放。一级封锁协议可以防止丢失修改，并保证事务T是可恢复的。
+- **二级封锁协议**
+	指在一级封锁协议基础上增加事务T在读数据R之前必须先对其加S锁，读完后即可释放S锁。二级封锁协议出防止了丢失修改，还可以进一步防止读“脏”数据。
+
+- **三级封锁协议**
+	指在一级封锁协议的基础上增加事务T在读数据R之前必须先对其加S锁，直到事务结束才释放。三级封锁协议出防止了丢失修改和读“脏”数据外，还可以进一步防止了不可重复读。		
+
+
+---
+### 事务	
+
+事务就是将一系列的动作当做一个单独的工作单元. 这些动作要么全部完成, 要么全部不执行。<br>
+
+**事务的四个属性**<br>
+
+- **原子性(atomicity)** 事务是一个原子操作, 由一系列动作组成. 事务的原子性确保动作要么全部完成要么完全不起作用.
+- **一致性(consistency)** 一旦所有事务动作完成, 事务就被提交. 数据和资源就处于一种满足业务规则的一致性状态中.
+- **隔离性(isolation)** 可能有许多事务会同时处理相同的数据, 因此每个事物都应该与其他事务隔离开来, 防止数据损坏.
+- **持久性(durability)** 一旦事务完成, 无论发生什么系统错误, 它的结果都不应该受到影响. 通常情况下, 事务的结果被写到持久化存储器中.<br>
+
+**并发操作事务可能出现的问题**<br>
+![](/img/web/spring/tx/concurrent-problems.png)
+
+- **丢失更新** 当两个或多个事务选择同一行，然后基于最初选定的值更新该行时，会发生丢失更新问题;
+- **脏读** 一个事务读到另一个事务未提交的更新数据;
+- **不可重复读** 在同一个事务中,多次读取同一数据,返回的结果有所不同;
+- **幻读** 一个事务读取到另一个事务已提交的insert数据.不可重复读和幻读的区别在于，前者注重的delete和update等行级锁，但是后者
+则需要表锁，才能防止insert的操作。<br>
+
+**事务的隔离界级别**
+
+1. `ISOLATION_DEFAULT` 这是一个PlatfromTransactionManager默认的隔离级别，使用数据库默认的事务隔离级别.
+2. `ISOLATION_READ_UNCOMMITTED` 这是事务最低的隔离级别，它充许令外一个事务可以看到这个事务未提交的数据。
+  这种隔离级别会产生脏读，不可重复读和幻像读。
+3. `ISOLATION_READ_COMMITTED` 保证一个事务修改的数据提交后才能被另外一个事务读取,另外一个事务不能读取该事务未提交的数据
+4. `ISOLATION_REPEATABLE_READ` 这种事务隔离级别可以防止脏读，不可重复读,但是可能出现幻像读。
+5. `ISOLATION_SERIALIZABLE` 花费最高代价但是最可靠的事务隔离级别。事务被处理为顺序执行,除了防止脏读，不可重复读外，还避免了幻像读。
+
+
+
+---	
+
+### 数据库范式
+
+关系数据库设计时，通常遵循不同的范式，常见有以下六种范式：第一范式（1NF）、第二范式（2NF）、第三范式（3NF）、巴斯-科德范式（BCNF）、第四范式(4NF）和第五范式（5NF，又称完美范式）。
+**每一范式都在上一级范式的基础上增加了更多的约束条件，随而且随着范式级数的增加，数据冗余度依次减少。**<br>
+
+实际数据库设计需要从数据冗余和查询效率等方面考虑，一般当数据库达到第三方式就行了。
+
+#### 一范式 
+
+对属性原子性约束，属性是不可再分的
+
+#### 二范式 
+非主属性完全依赖于主属性
+
+![](/img/sql/2f-1.png)
+
+通常使用投影分解，将一个表分解成两个或若干个表
+
+![](/img/sql/2f-2.png)
+
+#### 三范式 
+
+不存在非主属性对非主属性的依赖<br>
+
+在上表中，老师决定了老师职称，也就是非主属性职称传递依赖于老师，不符合第三范式,也是在第二范式基础上使用投影法处理
+
+![](/img/sql/3f-1.png)
+
+
+#### BCNF范式
+
+主属性不依赖于主属性<br>
+
+考虑如下数据库表<br>
+
+|仓库名|管理员|物品名|数量|
+
+![](/img/sql/bcnf-1.png)
+
+![](/img/sql/bcnf-2.png)
+
+---
+### 参考资料
+- [SQL 教程](http://www.runoob.com/sql/sql-tutorial.html)
+- [SQL索引一步到位（此文章为“数据库性能优化二：数据库表优化”附属文章之一）](https://www.cnblogs.com/AK2012/archive/2013/01/04/2844283.html)
+- [Mysql几种索引类型的区别及适用情况](http://www.cnblogs.com/yuan-shuai/p/3225417.html)
+- [MySQL有哪些索引类型 ?](https://segmentfault.com/q/1010000003832312)
+- [11.2.7 创建视图约束](http://book.51cto.com/art/201012/241083.htm)
+- [一看就懂的数据库范式介绍（1NF,2NF,3NF,BC NF,4NF,5NF)](http://josh-persistence.iteye.com/blog/2200644)
+- [数据库原理 —— 关系数据库的三范式与BCNF](http://blog.csdn.net/HeatDeath/article/details/78700820)
+- [MySQL 乐观锁与悲观锁](https://www.jianshu.com/p/f5ff017db62a)
+- [数据库中的锁机制和封锁协议](http://blog.csdn.net/u011244839/article/details/74454933)

@@ -158,6 +158,47 @@ public int numTrees(int n) {
 ```
 
 ---
+#### [Decode Ways](https://leetcode.com/problems/decode-ways/description/)
+**解题思路**
+典型的动态规划问题，当下的解析方式dp[i]种类数需要根据strs[i]进行判断：<br>
+
+- 如果等于'0',判断strs[i-1]+strs[i]是否在1-26之间，在的话，dp[i]=dp[i-2]，否则不存在解析方式；
+- 如果不等于'0'，dp[i]=dp[i-1]，如果strs[i-1]+strs[i]是否在10-26之间，dp[i]+=dp[i-2],具体参见实现代码。<br>
+**实现代码**
+
+```java
+public int numDecodings(String s) {
+    if (s == null || s.length() == 0 || s.startsWith("0")) {
+        return 0;
+    }
+    int length = s.length();
+    int[] dp = new int[length + 1];
+//        初始化参数
+    dp[0] = dp[1] = 1;
+    for (int i = 2; i <= length; i++) {
+        char c = s.charAt(i-1);
+//            前面两个字符的数字表示大小
+        int tmp = (s.charAt(i - 2) - '0') * 10 + c - '0';
+        if (c == '0') {
+//                不在1-26之间
+            if (tmp<=0 || tmp > 26) {
+                return 0;
+            }
+            dp[i] = dp[i - 2];
+        } else {
+            dp[i] = dp[i - 1];
+//                在10-26之间
+            if (tmp <= 26 && tmp >10) {
+                dp[i] += dp[i - 2];
+            }
+        }
+    }
+    return dp[length];
+}
+```
+
+
+---
 ### 参考资料
 - [剑指offer（第二版）java实现导航帖](https://www.jianshu.com/p/010410a4d419)
 - [LeetCode题解](https://www.zybuluo.com/Yano/note/253649)

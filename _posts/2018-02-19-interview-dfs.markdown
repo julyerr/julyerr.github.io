@@ -219,6 +219,43 @@ private static void dfs(int start, int n, int k, List<Integer> cur) {
 }
 ```
 
+---
+#### [Generate Parentheses](https://leetcode.com/problems/generate-parentheses/description/)
+**解题思路**
+生成字符串只需要保证先有'('然后再有')',同时左右括号的次数相同即可。
+可以使用递归的方式产生结果，具体参见实现代码。<br>
+**实现代码**
+
+```java
+public List<String> generateParenthesis(int n) {
+    List<String> rt = new ArrayList<>();
+    if (n < 1) {
+        return rt;
+    }
+    dfs(rt, "", n, n);
+    return rt;
+}
+
+private void dfs(List<String> rt, String cur, int left, int right) {
+//        保证left优先出现
+    if (left > right) {
+        return;
+    }
+    if (left == 0 && right == 0) {
+        rt.add(cur);
+        return;
+    }
+//        先生成（
+    if (left > 0) {
+        dfs(rt, cur + '(', left - 1, right);
+    }
+
+//        后生成）
+    if (right > 0) {
+        dfs(rt, cur + ')', left, right);
+    }
+}
+```
 
 
 ---
