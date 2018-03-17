@@ -219,6 +219,30 @@ mybatis是一个持久层框架，其核心是输入映射和输出映射
 
 1.加入依赖包mybatis.jar以及mysql-connector-java.jar，为了显示日志信息推荐使用log4j.jar
 
+```xml
+<!--mybatis支持-->
+<dependency>
+  <groupId>org.mybatis</groupId>
+  <artifactId>mybatis</artifactId>
+  <version>3.3.0</version>
+</dependency>
+
+<!--sql 支持-->
+<dependency>
+  <groupId>mysql</groupId>
+  <artifactId>mysql-connector-java</artifactId>
+  <version>5.1.37</version>
+  <scope>runtime</scope>
+</dependency>
+
+<!--日志信息记录-->
+<dependency>
+  <groupId>log4j</groupId>
+  <artifactId>log4j</artifactId>
+  <version>1.2.17</version>
+</dependency>
+```
+
 2.**mybatis配置**<br>
     单独使用mybatis需要配置MybatisConfiguration.xml文件，如果使用了spring只需要配置映射实体类映射即可。
 ```xml
@@ -253,6 +277,13 @@ mybatis是一个持久层框架，其核心是输入映射和输出映射
 - `<environment>`元素是配置数据库,可以设置不同的id选择使用
 - typeAliases：方便在配置文件中引用类，不用书写全路径名称，直接使用别名。类种数太多，可以设置package属性
 - mappers：说明实体类的路径。mapper文件太多，可以设置mapper的package属性。
+
+其中配置的顺序不能颠倒，完整顺序如下
+
+```xml
+<!ELEMENT configuration (properties?, settings?, typeAliases?, typeHandlers?, 
+    objectFactory?, objectWrapperFactory?, plugins?, environments?, databaseIdProvider?, mappers?)>
+```
 
 3.**相关数据表的创建**
 

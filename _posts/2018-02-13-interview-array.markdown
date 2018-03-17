@@ -114,6 +114,7 @@ public int maxProfit(int[] prices) {
     return maxProfit;
 }
 ```
+
 ---
 #### [Best Time to Buy and Sell Stock II](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-ii/description/)
 **解题思路**<br>
@@ -303,91 +304,6 @@ public List<Integer> majorityElement(int[] nums) {
         rt.add(m2);
     }
     return rt;
-}
-```
-
----
-#### [Maximum Subarray](https://leetcode.com/problems/maximum-subarray/description/)
-**解题思路**<br>
-curSum存储包含当下元素的最大数值和，即curSum = Math.max(curSum+nums[i],nums[i]);
-maxSum记录nums[i]更新过程中最大值作为返回值,maxSum = Math.max(maxSum,curSum).
-**实现代码**<br>
-```java
-public int maxSubArray(int[] nums) {
-//        check validation,should not happen here
-    if (nums == null || nums.length == 0) {
-        return -1;
-    }
-    int curSum = nums[0];
-    int maxSum = nums[0];
-    for (int i = 1; i < nums.length; i++) {
-        //更新curSum 和 maxSum的值
-        curSum = Math.max(curSum + nums[i], nums[i]);
-        maxSum = Math.max(maxSum, curSum);
-    }
-    return maxSum;
-}
-```
-
----
-#### [Maximum Product Subarray](https://leetcode.com/problems/maximum-product-subarray/description/)
-**解题思路**<br>
-解题思路和上题类似，只是负数*负数=正数，因此需要保留最大和最小整数判断，具体参见实现代码
-**实现代码**<br>
-```java
-public int maxProduct(int[] nums) {
-//      check validation , should not happend here
-    if (nums == null || nums.length == 0) {
-        return -1;
-    }
-    int curMax = nums[0];
-    int curMin = nums[0];
-    int max = curMax;
-    for (int i = 1; i < nums.length; i++) {
-        curMax *= nums[i];
-        curMin *= nums[i];
-//            大小改变需要交换
-        if (curMax < curMin) {
-            int t = curMax;
-            curMax = curMin;
-            curMin = t;
-        }
-        curMax = Math.max(curMax, nums[i]);
-        curMin = Math.min(curMin, nums[i]);
-        max = Math.max(max, curMax);
-    }
-    return max;
-}
-```
-
----
-#### [Minimum Size Subarray Sum](https://leetcode.com/problems/minimum-size-subarray-sum/description/)
-**解题思路**<br>
-通过设置start,end两个游标限制大于sum的范围，对于大于sum的情况，start++;对于小于sum情况，end++。
-**实现代码**<br>
-```java
-public int minSubArrayLen(int s, int[] nums) {
-//        check validation
-    if (nums == null || nums.length == 0) {
-        return 0;
-    }
-    int min = Integer.MAX_VALUE;
-    int start = 0;
-    int sum = 0;
-//        end 就是 i
-    for (int i = 0; i < nums.length; i++) {
-        sum += nums[i];
-        if (sum >= s) {
-            while (sum - nums[start] >= s) {
-                sum -= nums[start++];
-            }
-            min = Math.min(min, i + 1 - start);
-        }
-    }
-    if (min > nums.length) {
-        return 0;
-    }
-    return min;
 }
 ```
 

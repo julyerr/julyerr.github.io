@@ -514,6 +514,9 @@ insert into teachers values('teacher1','teacher1',teacher1',True);
 python run.py runserver -h 0.0.0.0
 ```
 
+整个项目源码[参见](https://github.com/julyerr/font),如果感觉还可以就star一下呗:-)
+
+
 ---
 ### 参考资料
 - [font](https://github.com/julyerr/font)
