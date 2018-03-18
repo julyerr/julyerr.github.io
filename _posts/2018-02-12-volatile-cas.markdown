@@ -125,7 +125,7 @@ public class Singleton {
     private volatile Singleton instance = null;  
     public Singleton getInstance() {  
         if (instance == null) {  
-            synchronized(this) {  
+            synchronized(Singleton.class) {  
                 if (instance == null) {  
                     instance = new Singleton();  
                 }  
