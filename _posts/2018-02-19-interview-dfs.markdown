@@ -299,6 +299,62 @@ private void dfs(char[][] grid, int x, int y) {
 ```
 
 ---
+#### [Kth Largest Element in an Array](https://leetcode.com/problems/kth-largest-element-in-an-array/description/)
+
+**解题思路**
+题目没有明确说明数组中是否允许出现重复，不过从运行结果来看，可以出现重复的数，只是相同的数可能被排在不同的位置（比如，6最大，而且6出现两次，那么第一和第二大的数都是6）。可以使用堆排序，构建k个小顶堆，然后遍历后序的数，将更大的数添加进来。下面实现使用了类似快排的思路，找到左边界的元素划分后对应的下标位置，不断逼近nums.length-k(经过转换得到)然后返回。<br>
+**实现代码**
+
+```java
+public int findKthLargest(int[] nums, int k) {
+    if (nums == null || nums.length == 0) {
+        return -1;
+    }
+    return findK(nums, nums.length - k, 0, nums.length - 1);
+}
+
+private int findK(int[] nums, int k, int left, int right) {
+//        寻找中间分节点的位置
+    int p = partition(nums, left, right);
+    while (p != k) {
+//            不断进行调整
+        if (p > k) {
+            p = partition(nums, left, p - 1);
+        } else {
+            p = partition(nums, p + 1, right);
+        }
+    }
+    return nums[p];
+}
+
+//    一次快排操作
+private int partition(int[] nums, int left, int right) {
+    if (left > right) {
+        return left;
+    }
+    int tmp = nums[left];
+    while (left < right) {
+        while (left < right && nums[right] >= nums[left]) {
+            right--;
+        }
+        swap(nums, left, right);
+        while (left < right && nums[left] <= nums[right]) {
+            left++;
+        }
+        swap(nums, left, right);
+    }
+    nums[left] = tmp;
+    return left;
+}
+
+private void swap(int[] nums, int left, int right) {
+    int tmp = nums[left];
+    nums[left] = nums[right];
+    nums[right] = tmp;
+}
+```
+
+---
 ### 参考资料
 - [剑指offer（第二版）java实现导航帖](https://www.jianshu.com/p/010410a4d419)
 - [LeetCode题解](https://www.zybuluo.com/Yano/note/253649)

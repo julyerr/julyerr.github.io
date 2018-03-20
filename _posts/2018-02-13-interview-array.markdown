@@ -308,26 +308,6 @@ public List<Integer> majorityElement(int[] nums) {
 ```
 
 ---
-#### [Missing Number](https://leetcode.com/problems/missing-number/description/)
-**解题思路**<br>
-由于n+1中取出n个数，显然缺少的数使得相邻两个数之间的差值为2,直接返回该数即可。
-参考别人实现思路，非常巧妙，利用m^n^n=m的特性，迭代一次就可以求出结果，具体参见实现代码。
-**实现代码**<br>
-```java
-public int missingNumber(int[] nums) {
-//        check validation
-    if (nums == null || nums.length == 0) {
-        return -1;
-    }
-    int ret = nums.length;
-    for (int i = 0; i < nums.length; i++) {
-        ret ^= nums[i] ^ i;
-    }
-    return ret;
-}
-```
-
----
 #### [Move Zeroes](https://leetcode.com/problems/move-zeroes/description/)
 **解题思路**<br>
 原地进行操作，需要将非0的元素向前进行移动，后面元素全部置为0

@@ -366,6 +366,171 @@ public boolean isPalindrome(String s) {
 ```
 
 ---
+#### [Palindrome Partitioning](https://leetcode.com/problems/palindrome-partitioning/description/)
+**解题思路**
+可以使用递归的方法，将整个字符串分成两部分，前部分如果是回文的话可以添加到结果，后部分迭代使用递归生成的回文序列，具体参见实现代码。<br>
+**实现代码**
+
+```java
+public List<List<String>> partition(String s) {
+    List<List<String>> rt = new ArrayList<>();
+    if (s == null || s.length() == 0) {
+        return rt;
+    }
+    for (int i = 0; i < s.length(); i++) {
+//            截取前半部分
+        String prePart = s.substring(0, i+1);
+        if (isPalindrome(prePart)) {
+//                对后半部分进行递归
+            List<List<String>> subList = partition(s.substring(i + 1));
+            if (subList.isEmpty()) {
+                rt.add(Arrays.asList(prePart));
+            } else {
+//                    扩展两部分
+                for (List<String> list :
+                        subList) {
+                    List<String> tmp = new ArrayList<>();
+                    tmp.add(prePart);
+                    tmp.addAll(list);
+                    rt.add(tmp);
+                }
+            }
+        }
+    }
+    return rt;
+}
+
+//    判断是否为回文字符串
+private boolean isPalindrome(String s) {
+//        防止出现死循环
+    if (s.length() == 0) {
+        return false;
+    }
+    int start = 0;
+    int end = s.length() - 1;
+    while (start < end) {
+        if (s.charAt(start) != s.charAt(end)) {
+            return false;
+        }
+        start++;
+        end--;
+    }
+    return true;
+}
+
+```
+
+---
+#### [Word Search](https://leetcode.com/problems/word-search/description/)
+**解题思路**
+先遍历board中的每个元素，递归该元素的上下左右四个方向，如果存在则直接返回，否则跳过该元素，具体参见实现代码。<br>
+**实现代码**
+
+```java
+public boolean exist(char[][] board, String word) {
+//        需要验证的条件较多
+    if (board == null || board.length == 0 || board[0] == null || board[0].length == 0 || word == null || word.length() == 0) {
+        return false;
+    }
+    xLen = board.length;
+    yLen = board[0].length;
+//        不能出现重复访问同一个位置的情况
+    boolean[][] visited = new boolean[xLen][yLen];
+    for (int i = 0; i < xLen; i++) {
+        for (int j = 0; j < yLen; j++) {
+//                每次访问从头开始
+            if (finded(board, i, j, word, 0, visited)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+private boolean finded(char[][] board, int x, int y, String string, int index, boolean[][] visited) {
+    if (index == string.length()) {
+        return true;
+    }
+    if (x < 0 || x >= xLen || y < 0 || y >= yLen) {
+        return false;
+    }
+//        没有被访问过，并且相等
+    if (!visited[x][y] && string.charAt(index) == board[x][y]) {
+        visited[x][y] = true;
+//            dfs判断上下左右位置
+        if (finded(board, x + 1, y, string, index + 1, visited) || finded(board, x, y + 1, string, index + 1, visited) ||
+                finded(board, x - 1, y, string, index + 1, visited) || finded(board, x, y - 1, string, index + 1, visited)) {
+            return true;
+        }
+        visited[x][y] = false;
+    }
+    return false;
+}
+
+private int xLen, yLen;
+```
+
+---
+#### [Different Ways to Add Parentheses](https://leetcode.com/problems/different-ways-to-add-parentheses/description/)
+**解题思路**
+开始的想法是，不同的括号位置，可以对应到stack中针对某个运算符是直接计算，还是直接入栈后面再操作，但是后面实现的时候发现太复杂了。<br>
+转而还是使用递归，针对每个运算符，将整个字符串划分为两部分，然后分别计算左右的结果（递归获取）。<br>
+
+**实现代码**
+
+```java
+public List<Integer> diffWaysToCompute(String input) {
+    List<Integer> rt = new ArrayList<>();
+    if (input.length() == 0) {
+        return rt;
+    }
+    for (int i = 0; i < input.length(); i++) {
+        char c = input.charAt(i);
+//            将符号的左右字符串划分为不同的两部分
+        if (c == '+' || c == '-' || c == '*') {
+            String firsPart = input.substring(0, i);
+            String secondPart = input.substring(i + 1);
+            for (Integer first :
+                    diffWaysToCompute(firsPart)) {
+                for (Integer second :
+                        diffWaysToCompute(secondPart)) {
+                    int tmp = 0;
+                    switch (c) {
+                        case '+':
+                            tmp = first + second;
+                            break;
+                        case '-':
+                            tmp = first - second;
+                            break;
+                        case '*':
+                            tmp = first * second;
+                            break;
+                    }
+                    rt.add(tmp);
+                }
+            }
+        }
+    }
+//        如果没有运算符的话，只存在数字，可以作为结果返回
+    if (rt.size() == 0) {
+        rt.add(Integer.parseInt(input));
+    }
+    return rt;
+}
+```
+
+---
+#### [Kth Largest Element in an Array](https://leetcode.com/problems/kth-largest-element-in-an-array/description/)
+**解题思路**
+可以将原来的数组排序好，然后返回kth的元素。有更好的方法就是建立k个最小堆，然后针对剩余的元素，判断调整。<br>
+
+**实现代码**
+
+```java
+
+```
+
+---
 ### 参考资料
 - [剑指offer（第二版）java实现导航帖](https://www.jianshu.com/p/010410a4d419)
 - [LeetCode题解](https://www.zybuluo.com/Yano/note/253649)
