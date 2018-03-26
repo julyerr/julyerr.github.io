@@ -8,7 +8,7 @@ header-img: "img/lib/collection/map/map.jpg"
 header-mask: 0.5
 catalog: 	true
 tags:
-    - colletions
+    - collections
     - map
 ---
 

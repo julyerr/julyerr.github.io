@@ -56,6 +56,88 @@ public int hammingWeight(int n) {
 ```
 
 ---
+#### [Single Number](https://leetcode.com/problems/single-number/description/)
+**解题思路**
+巧妙利用了数字异或运算的性质，N^M^M=N,然后只需要针对数组中每一位进行异或操作即可。<br>
+**实现代码**
+
+```java
+public int singleNumber(int[] nums) {
+    if(nums==null||nums.length ==0){
+        return -1;
+    }
+    int n = 0;
+//        每一位^操作
+    for (int i :
+            nums) {
+        n ^= i;
+    }
+    return n;
+}
+```
+
+---
+#### [Single Number II](https://leetcode.com/problems/single-number-ii/description/)
+**解题思路**
+要求线性时间复杂度和O(1)的空间复杂度，比较好的方法就是位操作。每个数均出现了三次，除了一个之外。那么针对每一位统计1出现的次数count，count%3表示的就是所求的数在该位的值。（题目没有明确说明该数是否只出现一次，不过从结果来看，应该是只出现了一次）。<br>
+**实现代码**
+
+```java
+public int singleNumber(int[] nums) {
+    if (nums == null || nums.length == 0) {
+        return -1;
+    }
+    int ret = 0;
+    int bit = 1;
+    for (int i = 0; i < 32; i++) {
+        int count = 0;
+
+//            统计每一位1的num的个数
+        for (int j = 0; j < nums.length; j++) {
+            if ((nums[j] & bit) != 0) {
+                count++;
+            }
+        }
+        bit <<= 1;
+//            重新构造单个数
+        ret |= (count % 3) << i;
+    }
+    return ret;
+}
+```
+
+---
+#### [Single Number III](https://leetcode.com/problems/single-number-iii/description/)
+**解题思路**
+类似Single Number的解题思路，巧妙之处在于将整个数组划分为两部分，一部分包含单个数A,一部分包含单个数B。
+具体是，通过数之间的异或操作之后，重复的数被消除，然后保留A和B异或的结果C；再次遍历数组，将数对应到C中某位为1的划分一类，该位不为1的划分为另一类，具体参见实现代码。<br>
+**实现代码**
+
+```java
+public int[] singleNumber(int[] nums) {
+    if (nums == null || nums.length == 0) {
+        return nums;
+    }
+    int[] ret = new int[2];
+    int n = 0;
+//        先计算出各个数的^的结果
+    for (int i = 0; i < nums.length; i++) {
+        n ^= nums[i];
+    }
+//        确定最后一位1的数，用以划分数组
+    n = n & (~(n - 1));
+    for (int i = 0; i < nums.length; i++) {
+        if ((nums[i] & n) == 0) {
+            ret[0] ^= nums[i];
+        } else {
+            ret[1] ^= nums[i];
+        }
+    }
+    return ret;
+}
+```
+
+---
 #### [Missing Number](https://leetcode.com/problems/missing-number/description/)
 **解题思路**<br>
 由于n+1中取出n个数，显然缺少的数使得相邻两个数之间的差值为2,直接返回该数即可。
@@ -167,6 +249,70 @@ public int reverseBits(int n) {
     }
     return ret;
 }
+```
+
+---
+#### [Subsets II](https://leetcode.com/problems/subsets-ii/description/)
+**解题思路**
+可以不使用递归的方式解决，针对pow(2,nums.length)的方法数，然后加进对应的nums[i],具体参见实现代码。<br>
+这种实现方式也适用于Subset 结题。<br>
+**实现代码**
+```java
+public List<List<Integer>> subsetsWithDup(int[] nums) {
+//        check validation
+    if (nums == null || nums.length == 0) {
+        return new ArrayList<>();
+    }
+
+    Set<List<Integer>> rt = new HashSet<>();
+
+    int length = nums.length;
+    Arrays.sort(nums);
+    for (int i = 0; i < Math.pow(2, length); i++) {
+        int tmp = i;
+        List<Integer> list = new ArrayList<>();
+
+        for (int j = 0; j < length; j++) {
+            int bit = tmp & 0x01;
+            tmp = tmp >> 1;
+            if (bit == 1) {
+                list.add(nums[j]);
+            }
+        }
+        rt.add(list);
+    }
+    return new ArrayList<>(rt);
+}
+```
+
+---
+#### []()
+**解题思路**
+<br>
+**实现代码**
+
+```java
+
+```
+
+---
+#### []()
+**解题思路**
+<br>
+**实现代码**
+
+```java
+
+```
+
+---
+#### []()
+**解题思路**
+<br>
+**实现代码**
+
+```java
+
 ```
 
 ---

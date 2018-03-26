@@ -15,131 +15,6 @@ tags:
     - dfs
 ---
 
-### Combination 系列
-#### [Combinations](https://leetcode.com/problems/combinations/description/)
-**解题思路**
-递归，选择数字k次，每次选择的数字都比前一个大。<br>
-**实现代码**
-```java
-//    存储的次数
-static int times;
-//    全局数组
-static Integer[] nums;
-static Integer[] cur;
-List<List<Integer>> rt;
-
-public List<List<Integer>> combine(int n, int k) {
-    rt = new ArrayList<>();
-//        check validation
-    if (n < 1 || k < 1) {
-        return rt;
-    }
-//        赋新值
-    nums = new Integer[n];
-    cur = new Integer[k];
-    for (int i = 0; i < n; i++) {
-        nums[i] = i + 1;
-    }
-    times = k;
-    dfs(0);
-    return rt;
-}
-
-private void dfs(int start) {
-    if (start == times) {
-        rt.add(new ArrayList<>(Arrays.asList(cur)));
-        return;
-    }
-
-    for (int i = 0; i < nums.length; i++) {
-//            比最后一个元素大的值
-        if (start > 0 && nums[i] <= cur[start - 1]) {
-            continue;
-        }
-
-        cur[start] = nums[i];
-        dfs(start + 1);
-    }
-}
-```
-
-#### [Subsets](https://leetcode.com/problems/subsets/description/)
-**解题思路**<br>
-解题思路和上题基本类似，只是需要针对不同的长度递归<br>
-**实现代码**
-```java
-static List<List<Integer>> rt;
-static int times;
-static Integer[] cur;
-
-public List<List<Integer>> subsets(int[] nums) {
-    rt = new ArrayList<>();
-    //        check validation
-    if (nums == null || nums.length == 0) {
-        return rt;
-    }
-//        sort the array
-    Arrays.sort(nums);
-
-    for (int i = 0; i < nums.length; i++) {
-//            针对不同的长度进行更新
-        times = i;
-        cur = new Integer[i];
-        dfs(nums, 0);
-    }
-    return rt;
-}
-
-private void dfs(int[] nums, int start) {
-    if (start == times) {
-        rt.add(new ArrayList<>(Arrays.asList(cur)));
-        return;
-    }
-    for (int i = 0; i < nums.length; i++) {
-        if (start > 0 && nums[i] <= cur[start - 1]) {
-            continue;
-        }
-        cur[start] = nums[i];
-        dfs(nums, start + 1);
-    }
-}
-
-```
-
-#### [Subsets II](https://leetcode.com/problems/subsets-ii/description/)
-**解题思路**
-可以不使用递归的方式解决，针对pow(2,nums.length)的方法数，然后加进对应的nums[i],具体参见实现代码。<br>
-这种实现方式也适用于Subset 结题。<br>
-**实现代码**
-```java
-public List<List<Integer>> subsetsWithDup(int[] nums) {
-//        check validation
-    if (nums == null || nums.length == 0) {
-        return new ArrayList<>();
-    }
-
-    Set<List<Integer>> rt = new HashSet<>();
-
-    int length = nums.length;
-    Arrays.sort(nums);
-    for (int i = 0; i < Math.pow(2, length); i++) {
-        int tmp = i;
-        List<Integer> list = new ArrayList<>();
-
-        for (int j = 0; j < length; j++) {
-            int bit = tmp & 0x01;
-            tmp = tmp >> 1;
-            if (bit == 1) {
-                list.add(nums[j]);
-            }
-        }
-        rt.add(list);
-    }
-    return new ArrayList<>(rt);
-}
-```
-
----
 ### Combination Sum系列
 #### [Combination Sum](https://leetcode.com/problems/combination-sum/description/)
 **解题思路**<br>
@@ -216,6 +91,248 @@ private static void dfs(int start, int n, int k, List<Integer> cur) {
         dfs(i + 1, n - i, k - 1, cur);
         cur.remove(cur.size() - 1);
     }
+}
+```
+
+---
+#### [Subsets](https://leetcode.com/problems/subsets/description/)
+**解题思路**<br>
+解题思路和上题基本类似，只是需要针对不同的长度递归<br>
+**实现代码**
+```java
+static List<List<Integer>> rt;
+static int times;
+static Integer[] cur;
+
+public List<List<Integer>> subsets(int[] nums) {
+    rt = new ArrayList<>();
+    //        check validation
+    if (nums == null || nums.length == 0) {
+        return rt;
+    }
+//        sort the array
+    Arrays.sort(nums);
+
+    for (int i = 0; i < nums.length; i++) {
+//            针对不同的长度进行更新
+        times = i;
+        cur = new Integer[i];
+        dfs(nums, 0);
+    }
+    return rt;
+}
+
+private void dfs(int[] nums, int start) {
+    if (start == times) {
+        rt.add(new ArrayList<>(Arrays.asList(cur)));
+        return;
+    }
+    for (int i = 0; i < nums.length; i++) {
+        if (start > 0 && nums[i] <= cur[start - 1]) {
+            continue;
+        }
+        cur[start] = nums[i];
+        dfs(nums, start + 1);
+    }
+}
+
+```
+
+---
+#### [Restore IP Addresses](https://leetcode.com/problems/restore-ip-addresses/description/)
+**解题思路**
+使用递归的方式，传入当前下标cur和已经划分好的段数；只有在划分好四段而且cur==s.length()-1的时候才返回。<br>
+**实现代码**
+
+```java
+List<String> rt;
+String[] strs = new String[4];
+
+public List<String> restoreIpAddresses(String s) {
+    rt = new ArrayList<>();
+    if (s == null || s.length() < 4) {
+        return rt;
+    }
+    dfs(s, 0, 0);
+    return rt;
+}
+
+private void dfs(String s, int cur, int segs) {
+    if (segs == 4) {
+        if (cur >= s.length()) {
+            rt.add(String.join(".", strs));
+        }
+        return;
+    }
+//        考虑接下来的1-3个字符划分为新的一段
+    for (int i = 1; i <= 3; i++) {
+        if (cur + i > s.length()) {
+            return;
+        }
+//            如果当前字符是0,除了当前0为一段之外，其他直接返回
+        if (i > 1 && s.charAt(cur) == '0') {
+            return;
+        }
+        String number = s.substring(cur, cur + i);
+        if (Integer.parseInt(number) <= 255) {
+            strs[segs] = number;
+            dfs(s, cur + i, segs + 1);
+        }
+    }
+}
+```
+
+---
+#### [Palindrome Partitioning](https://leetcode.com/problems/palindrome-partitioning/description/)
+**解题思路**
+可以使用递归的方法，将整个字符串分成两部分，前部分如果是回文的话可以添加到结果，后部分迭代使用递归生成的回文序列，具体参见实现代码。<br>
+**实现代码**
+
+```java
+public List<List<String>> partition(String s) {
+    List<List<String>> rt = new ArrayList<>();
+    if (s == null || s.length() == 0) {
+        return rt;
+    }
+    for (int i = 0; i < s.length(); i++) {
+//            截取前半部分
+        String prePart = s.substring(0, i+1);
+        if (isPalindrome(prePart)) {
+//                对后半部分进行递归
+            List<List<String>> subList = partition(s.substring(i + 1));
+            if (subList.isEmpty()) {
+                rt.add(Arrays.asList(prePart));
+            } else {
+//                    扩展两部分
+                for (List<String> list :
+                        subList) {
+                    List<String> tmp = new ArrayList<>();
+                    tmp.add(prePart);
+                    tmp.addAll(list);
+                    rt.add(tmp);
+                }
+            }
+        }
+    }
+    return rt;
+}
+
+//    判断是否为回文字符串
+private boolean isPalindrome(String s) {
+//        防止出现死循环
+    if (s.length() == 0) {
+        return false;
+    }
+    int start = 0;
+    int end = s.length() - 1;
+    while (start < end) {
+        if (s.charAt(start) != s.charAt(end)) {
+            return false;
+        }
+        start++;
+        end--;
+    }
+    return true;
+}
+
+```
+
+---
+#### [Word Search](https://leetcode.com/problems/word-search/description/)
+**解题思路**
+先遍历board中的每个元素，递归该元素的上下左右四个方向，如果存在则直接返回，否则跳过该元素，具体参见实现代码。<br>
+**实现代码**
+
+```java
+public boolean exist(char[][] board, String word) {
+//        需要验证的条件较多
+    if (board == null || board.length == 0 || board[0] == null || board[0].length == 0 || word == null || word.length() == 0) {
+        return false;
+    }
+    xLen = board.length;
+    yLen = board[0].length;
+//        不能出现重复访问同一个位置的情况
+    boolean[][] visited = new boolean[xLen][yLen];
+    for (int i = 0; i < xLen; i++) {
+        for (int j = 0; j < yLen; j++) {
+//                每次访问从头开始
+            if (finded(board, i, j, word, 0, visited)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+private boolean finded(char[][] board, int x, int y, String string, int index, boolean[][] visited) {
+    if (index == string.length()) {
+        return true;
+    }
+    if (x < 0 || x >= xLen || y < 0 || y >= yLen) {
+        return false;
+    }
+//        没有被访问过，并且相等
+    if (!visited[x][y] && string.charAt(index) == board[x][y]) {
+        visited[x][y] = true;
+//            dfs判断上下左右位置
+        if (finded(board, x + 1, y, string, index + 1, visited) || finded(board, x, y + 1, string, index + 1, visited) ||
+                finded(board, x - 1, y, string, index + 1, visited) || finded(board, x, y - 1, string, index + 1, visited)) {
+            return true;
+        }
+        visited[x][y] = false;
+    }
+    return false;
+}
+
+private int xLen, yLen;
+```
+
+---
+#### [Different Ways to Add Parentheses](https://leetcode.com/problems/different-ways-to-add-parentheses/description/)
+**解题思路**
+开始的想法是，不同的括号位置，可以对应到stack中针对某个运算符是直接计算，还是直接入栈后面再操作，但是后面实现的时候发现太复杂了。<br>
+转而还是使用递归，针对每个运算符，将整个字符串划分为两部分，然后分别计算左右的结果（递归获取）。<br>
+
+**实现代码**
+
+```java
+public List<Integer> diffWaysToCompute(String input) {
+    List<Integer> rt = new ArrayList<>();
+    if (input.length() == 0) {
+        return rt;
+    }
+    for (int i = 0; i < input.length(); i++) {
+        char c = input.charAt(i);
+//            将符号的左右字符串划分为不同的两部分
+        if (c == '+' || c == '-' || c == '*') {
+            String firsPart = input.substring(0, i);
+            String secondPart = input.substring(i + 1);
+            for (Integer first :
+                    diffWaysToCompute(firsPart)) {
+                for (Integer second :
+                        diffWaysToCompute(secondPart)) {
+                    int tmp = 0;
+                    switch (c) {
+                        case '+':
+                            tmp = first + second;
+                            break;
+                        case '-':
+                            tmp = first - second;
+                            break;
+                        case '*':
+                            tmp = first * second;
+                            break;
+                    }
+                    rt.add(tmp);
+                }
+            }
+        }
+    }
+//        如果没有运算符的话，只存在数字，可以作为结果返回
+    if (rt.size() == 0) {
+        rt.add(Integer.parseInt(input));
+    }
+    return rt;
 }
 ```
 

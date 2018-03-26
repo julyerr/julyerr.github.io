@@ -8,7 +8,7 @@ header-img: "img/lib/collection/list/list.jpeg"
 header-mask: 0.5
 catalog: 	true
 tags:
-    - colletions
+    - collections
     - list
 ---
 
