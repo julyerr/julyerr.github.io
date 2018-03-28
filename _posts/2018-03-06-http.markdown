@@ -99,6 +99,14 @@ GET和POST的区别如下：
 - 4xx：客户端错误--请求有语法错误或请求无法实现
 - 5xx：服务器端错误--服务器未能实现合法的请求
 
+![](/img/net/app/http/1x.png)
+![](/img/net/app/http/2x.png)
+![](/img/net/app/http/3x.png)
+![](/img/net/app/http/4x.png)
+![](/img/net/app/http/5x.png)
+
+
+
 首部行(响应头)<br>
 常见响应头
 
@@ -221,3 +229,4 @@ https不同于HTTP过程就是开始的双方加密握手的建立，加密建�
 - [Session和Cookie比较](https://www.jianshu.com/p/236a074d0d05)
 - [非对称加密原理解析](http://blog.csdn.net/wzzvictory/article/details/9015155)
 - [什么是跨域，解决跨域问题](https://www.jianshu.com/p/6a6bff614407)
+- [http协议进阶（三）http报文](https://www.cnblogs.com/imyalost/p/5863882.html)

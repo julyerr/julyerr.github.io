@@ -130,9 +130,85 @@ java中不同版本使用的gc(garbage collection)也不同，后文会针对具
 - 后面时间`user`,`sys`和`real`分别表示`用户态消耗CPU时间`、`内核态消耗CPU时间`和`操作开始到结束经过的时间`（如果是多核CPU，多线程叠加CPU时间，可能导致user和sys之和超过real的时间）
 
 
+### jvm调优
 
+jvm调优通常从内存、线程等方面进行考虑，java界也提供了很多非常优秀的jvm管理和监控工具.
 
-	
+#### jvm常见配置参数
+
+**堆设置**
+
+- -Xms:初始堆大小
+- -Xmx:最大堆大小
+- -XX:NewSize=n:设置年轻代大小
+- -XX:NewRatio=n:设置年轻代和年老代的比值。如:为3，表示年轻代与年老代比值为1：3，年轻代占整个年轻代年老代和的1/4
+- -XX:SurvivorRatio=n:年轻代中Eden区与两个Survivor区的比值。注意Survivor区有两个。如：3，表示Eden：Survivor=3：2，一个Survivor区占整个年轻代的1/5
+- -XX:MaxPermSize=n:设置持久代大小
+
+**收集器设置**
+
+- -XX:+UseSerialGC:设置串行收集器
+- -XX:+UseParallelGC:设置并行收集器
+- -XX:+UseParalledlOldGC:设置并行年老代收集器
+- -XX:+UseConcMarkSweepGC:设置并发收集器
+
+**垃圾回收统计信息**
+
+- -XX:+PrintGC
+- -XX:+PrintGCDetails
+- -XX:+PrintGCTimeStamps
+- -Xloggc:filename
+
+**并行收集器设置**
+
+- -XX:ParallelGCThreads=n:设置并行收集器收集时使用的CPU数,并行收集线程数。
+- -XX:MaxGCPauseMillis=n:设置并行收集最大暂停时间
+- -XX:GCTimeRatio=n:设置垃圾回收时间占程序运行时间的百分比。公式为1/(1+n)
+
+**并发收集器设置**
+
+- -XX:+CMSIncrementalMode:设置为增量模式,适用于单CPU情况。
+
+**并发和并行的区别**
+
+- 并发：有多个任务来临，但是不一定需要同时执行这些任务
+
+- 并行: 有个任务来临，同时具备同时处理这些任务的能力
+
+**堆信息查看**
+
+- 查看堆空间大小分配（年轻代、年老代、持久代分配）
+- 垃圾监控（长时间监控回收情况）
+
+**线程监控**
+
+- 系统中线程数量
+- 各个线程处于的状态
+- 线程内部运行情况
+- 死锁检查
+
+其中特别关注
+
+- **CPU热点**：检查系统哪些方法占用的大量CPU时间
+- **内存热点**：检查哪些对象在系统中数量最大
+
+**内存泄露**<br>
+内存泄露是jvm中较为常见和严重的错误，通常伴随着以下异常信息	：
+
+- java.lang.OutOfMemoryError: Java heap space（堆溢出），
+- java.lang.OutOfMemoryError: PermGen space（永久代溢出），
+- java.lang.StackOverflowError（栈溢出），
+- java.lang.OutOfMemoryError: unable to create new native thread（内存不足，创建新线程失败）
+
+#### 调试和监控工具
+
+**Jconsole** :jdk自带，功能简单，但是可以在系统有一定负荷的情况下使用。对垃圾回收算法有很详细的跟踪。
+
+**VisualVM** ：JDK自带，功能强大，与JProfiler类似，推荐使用。
+
+![](/img/jvm/gc/visualvm.jpg)
+
+**JProfiler**：商业软件，需要付费，功能强
 
 		
 
@@ -141,3 +217,4 @@ java中不同版本使用的gc(garbage collection)也不同，后文会针对具
 [1]:http://julyerr.club/2018/01/27/jvm-mem-manage/#方法区
 - [图解Java 垃圾回收机制](http://blog.csdn.net/justloveyou_/article/details/71216049)
 - [深入理解Java虚拟机（一）](https://www.jianshu.com/p/62f9db4d1df3)
+- [JVM调优总结](https://www.jianshu.com/p/51d82de75d3d)
