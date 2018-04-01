@@ -1,0 +1,110 @@
+---
+layout:     post
+title:      "k8s的网络简析"
+subtitle:   "k8s的网络简析"
+date:       2018-04-01 12:00:00
+author:     "julyerr"
+header-img: "img/k8s/net/net.png"
+header-mask: 0.5
+catalog: 	true
+tags:
+    - k8s
+---
+
+在本篇文章之前，可以先看看[docker中的网络模型](http://julyerr.club/2018/03/17/docker-internal/#网络驱动).
+
+### Pod IP
+
+k8s中Pod的IP是最小粒度IP,同一个Pod内所有的容器共享一个网络堆栈，该模型称为`IP-per-Pod`模型。<br>
+k8s使用了docker中的bridge模式，新建一个Pod的时候，会预先创建一个网络容器，它不做任何事情，只是用来接管Pod的网络，业务容器通过加入网络容器的网络从而实现网络共享。<br>
+
+docker bridge只能保证同一Host上的Pod容器能够互相通信，k8s使用了flannel实现的overlay network提供容器跨主机访问能力。
+
+
+### Flannel
+
+flannel 为集群中的所有节点重新规划IP地址的使用规则，从而使得不同节点上的容器能够获得“同属一个内网”且”不重复的”IP地址，并让属于不同节点上的容器能够直接通过内网IP通信。<br>
+
+#### 工作原理
+flannel是一种覆盖网络，将TCP数据包装在另一种网络包里面进行路由转发和通信，目前已经支持UDP、VxLAN、AWS VPC和GCE路由等数据转发方式。（最为常用的是UDP转发的方式）
+
+![](/img/linux/net/flannel-udp.png)	
+
+vxlan也是一种隧道网络，下面是vxlan的数据报文格式
+
+![](/img/linux/net/vxlan-format.png)	
+
+Flannel通过Etcd服务维护了一张节点间的路由表。 docker启动的时候添加上对应的--bip限制节点容器获取ip的范围。
+
+![](/img/linux/net/flannel.png)	
+
+---
+### k8s中几种通信方式
+
+**ip概念汇总**
+
+|IP类型	|说明
+|-|
+|Proxy-IP	|代理层公网地址IP，外部访问应用的网关服务器。
+|Service-IP	|Service的固定虚拟IP，Service-IP是内部，外部无法寻址到。
+|Node-IP	|容器宿主机的主机IP。
+|Container-Bridge-IP	|容器网桥（docker0）IP，容器的网络都需要通过容器网桥转发。
+|Pod-IP	|Pod的IP，等效于Pod中网络容器的Container-IP。
+|Container-IP	|容器的IP，容器的网络是个隔离的网络空间。
+
+
+- **同一个Pod中的容器通信**<br>
+    通过本地地址进行通信
+![](/img/k8s/net/cons-in-pod.png)	
+- **同一Node上的Pod之间的通信**<br>
+	Pod地址和docker0在同一个网段，直接可以通信
+![](/img/k8s/net/pods-in-host.png)	
+- **Pod和不同Node实现通信以及不同Node上的Pod通信**<br>
+	在容器集群中创建一个覆盖网络(Overlay Network)，联通各个节点，目前可以通过第三方网络插件来创建覆盖网络，比如Flannel和Open vSwitch等
+![](/img/k8s/net/pods-in-hosts.png)	
+
+
+### 外部访问集群中的应用
+
+#### Service类型
+有三种实现，ClusterIP（默认），NodePort和LoadBalancer<br>
+
+**ClusterIp**<br>
+Kube-proxy监听kubernetes master增加和删除Service以及Endpoint的消息，对于每一个Service，kube proxy创建相应的iptables规则，将发送到Service Cluster IP的流量转发到Service后端提供服务的Pod的相应端口上。 
+
+![](/img/k8s/services-iptables-overview.png)		
+
+**NodePort**<br>
+Cluster中的主机通过一个指定端口暴露服务，每台主机通过该指定端口都可以访问到服务，并且发送到该主机端口的请求会被kubernetes路由到提供服务的Pod上。
+		
+![](/img/k8s/service-nodeport.PNG)		
+
+在生产环境中不会使用这种方式，一方面客户端获取资源的时候需要知道主机ip;另一方面，如果一台host宕机了，新的应用转移，客户获取的ip就无效。<br>
+
+### LoadBalaner
+
+- **通过外部的负载均衡实现**<br>
+    例如google，aws等厂商,也可以自己搭建私有云（openstack私有云，下图所示）
+
+![](/img/k8s/net/load-balancer-out.PNG)		
+
+- **裸机上实现LB的Service**<br>
+	监听kubernetes Master的service创建消息，并根据消息部署相应的Load Balancer（如Nginx或者HAProxy）
+![](/img/k8s/net/multiple-load-balancer.PNG)		
+	每个服务都会创建一个外部的LB,同一个应用的多个服务/资源会放在同一个域名下，在这种情况下，创建多个Load balancer是完全没有必要的，反而带来了额外的开销和管理成本。
+
+#### ingress作为7层负载均衡
+Ingress只是存储在etcd上面一些数据，我们可以能够通过kubernetes的apiserver添加删除和修改ingress资源。<br>
+Ingress Controller通过监听apiserver的ingresses资源变化，并且根据其指定的规则建立起外部网络访问内部服务的通道。<br>
+ingress controller是k8s的一个扩展，官方提供了nginx ingress controler，也可以自定义实现ingress controler,整个架构图如下
+
+![](/img/k8s/net/ingress-controller-nginx.png)	
+
+ingress controller默认是以pod的方式部署在k8s集群内部，但是由于pod可能存在漂移的情况，因此实际场景中，通常会将ingress controller部署在集群外部。为了ingress controller访问集群内服务，一般将所有机器部署flannel的overlay 网络，这样ingress controller也能通过路由访问到容器。
+
+---
+### 参考资料
+- [Kubernetes网络原理](https://blog.csdn.net/huwh_/article/details/77922093)
+- [如何从外部访问Kubernetes集群中的应用？](https://blog.csdn.net/zhaohuabing/article/details/78673329)
+- [Kubernetes网络原理及方案](http://www.youruncloud.com/blog/131.html)
+- [Kubernetes Ingress（1）简介](http://shareinto.github.io/2017/04/13/KubernetesIngress%EF%BC%881%EF%BC%89/)

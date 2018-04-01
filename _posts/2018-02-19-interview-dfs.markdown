@@ -95,50 +95,6 @@ private static void dfs(int start, int n, int k, List<Integer> cur) {
 ```
 
 ---
-#### [Subsets](https://leetcode.com/problems/subsets/description/)
-**解题思路**<br>
-解题思路和上题基本类似，只是需要针对不同的长度递归<br>
-**实现代码**
-```java
-static List<List<Integer>> rt;
-static int times;
-static Integer[] cur;
-
-public List<List<Integer>> subsets(int[] nums) {
-    rt = new ArrayList<>();
-    //        check validation
-    if (nums == null || nums.length == 0) {
-        return rt;
-    }
-//        sort the array
-    Arrays.sort(nums);
-
-    for (int i = 0; i < nums.length; i++) {
-//            针对不同的长度进行更新
-        times = i;
-        cur = new Integer[i];
-        dfs(nums, 0);
-    }
-    return rt;
-}
-
-private void dfs(int[] nums, int start) {
-    if (start == times) {
-        rt.add(new ArrayList<>(Arrays.asList(cur)));
-        return;
-    }
-    for (int i = 0; i < nums.length; i++) {
-        if (start > 0 && nums[i] <= cur[start - 1]) {
-            continue;
-        }
-        cur[start] = nums[i];
-        dfs(nums, start + 1);
-    }
-}
-
-```
-
----
 #### [Restore IP Addresses](https://leetcode.com/problems/restore-ip-addresses/description/)
 **解题思路**
 使用递归的方式，传入当前下标cur和已经划分好的段数；只有在划分好四段而且cur==s.length()-1的时候才返回。<br>

@@ -43,6 +43,40 @@ public boolean containsNearbyAlmostDuplicate(int[] nums, int k, int t) {
 ```
 
 ---
+#### [Subsets](https://leetcode.com/problems/subsets/description/)
+**解题思路**<br>
+集合的幂次数判断，具体参见实现代码。<br>
+**实现代码**
+```java
+public List<List<Integer>> subsets(int[] nums) {
+    //        check validation
+    if (nums == null || nums.length == 0) {
+        return new ArrayList<>();
+    }
+
+    Set<List<Integer>> rt = new HashSet<>();
+
+    int length = nums.length;
+    Arrays.sort(nums);
+    for (int i = 0; i < Math.pow(2, length); i++) {
+        int tmp = i;
+        List<Integer> list = new ArrayList<>();
+
+        for (int j = 0; j < length; j++) {
+            int bit = tmp & 0x01;
+            tmp = tmp >> 1;
+            if (bit == 1) {
+                list.add(nums[j]);
+            }
+        }
+        rt.add(list);
+    }
+    return new ArrayList<>(rt);
+}
+```
+
+
+---
 ### 参考资料
 - [剑指offer（第二版）java实现导航帖](https://www.jianshu.com/p/010410a4d419)
 - [LeetCode题解](https://www.zybuluo.com/Yano/note/253649)

@@ -271,8 +271,8 @@ public int calculate(String s) {
 #### [Basic Calculator II](https://leetcode.com/problems/basic-calculator-ii/description/)
 **解题思路**
 相对于第一道题目而言，没有括号的限制，但是有操作符的优先级。
-可以将乘除操作和加减操作分隔，第一遍的时候计算出乘除，后面计算加减即可。<
-计算加减的时候，由于栈的入栈和出栈的顺序相反，符号操作有正负，因此需要反转整个stack.br>
+可以将乘除操作和加减操作分隔，第一遍的时候计算出乘除，后面计算加减即可。
+计算加减的时候，由于栈的入栈和出栈的顺序相反，符号操作有正负，因此需要反转整个stack.<br>
 **实现代码**
 ```java
 public int calculate(String s) {
