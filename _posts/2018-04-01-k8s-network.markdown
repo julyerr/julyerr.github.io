@@ -74,6 +74,19 @@ Kube-proxy监听kubernetes master增加和删除Service以及Endpoint的消息�
 
 ![](/img/k8s/services-iptables-overview.png)		
 
+#### 固定pod ip
+
+k8s默认实现的service方案中，外部不能直接获取到pod ip，而且service对应的pod ip会动态发生变化。
+对于一些传统的应用，可能需要直接获取服务的ip（ip白名单等），因此需要考虑实现固定pod ip的功能。<br>
+
+k8s中网络解决方案采用CNI,具体可以[参考](http://julyerr.club/2018/03/31/net-interfaces/#cnicontainer-network-interface).
+我们可以自定义实现CNI标准的插件（IPAM管理ip分配），对Pod ip的分配统一进行管理。
+
+![](/img/k8s/net/fixed-ip.jpg)
+
+将IPAM看成是一个数据库，K8s启动Pod的时候，通过CNI实现从IPAM中查找ip的逻辑;进行应用部署的时候，也可以从IPAM中查找所需分配的ip,同时也可以对所有的ip进行统计和管理。<br>
+
+
 **NodePort**<br>
 Cluster中的主机通过一个指定端口暴露服务，每台主机通过该指定端口都可以访问到服务，并且发送到该主机端口的请求会被kubernetes路由到提供服务的Pod上。
 		
@@ -108,3 +121,4 @@ ingress controller默认是以pod的方式部署在k8s集群内部，但是由�
 - [如何从外部访问Kubernetes集群中的应用？](https://blog.csdn.net/zhaohuabing/article/details/78673329)
 - [Kubernetes网络原理及方案](http://www.youruncloud.com/blog/131.html)
 - [Kubernetes Ingress（1）简介](http://shareinto.github.io/2017/04/13/KubernetesIngress%EF%BC%881%EF%BC%89/)
+- [Kubernetes的网络接口CNI及灵雀云的实践](http://dockone.io/article/2901)
