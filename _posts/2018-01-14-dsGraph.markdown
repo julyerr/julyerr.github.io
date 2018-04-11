@@ -391,6 +391,9 @@ prim算法是基于顶点的，时间复杂度O(nlog(E)).
         sortEdges(edata);
     //递归追溯数组
         int[] ends = new int[edgeNumL];
+        for(int i = 0;i<ends.length;i++){
+            ends[i] = i;
+        }
     //最短边集    
         EData[] ret = new EData[edgeNumL];
         int index = 0;
@@ -429,7 +432,7 @@ prim算法是基于顶点的，时间复杂度O(nlog(E)).
 
 [完整代码](https://github.com/julyerr/algo/tree/master/src/com/julyerr/algo/graph)
 
-    本文只是基本实现，针对各个不同算法都有一定的改进版本，后面有时间再添加补充。
+本文只是基本实现，针对各个不同算法都有一定的改进版本，后面有时间再添加补充。
 
 **参考资料**
 [数据结构与算法系列 目录(Category)](http://wangkuiwu.github.io/2013/01/01/datastruct-index/)
