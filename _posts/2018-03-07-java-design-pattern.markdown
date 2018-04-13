@@ -57,7 +57,7 @@ public class Singleton1 {
 
 ```java
 public class Singleton2 {
-    private static Singleton2 instance=null;
+    private static volatile Singleton2 instance=null;
 
     private Singleton2() {};
 
