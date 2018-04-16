@@ -35,7 +35,72 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
     - ArrayBlockingQueue:基于数组结构的有界阻塞队列,按FIFO对元素进行排序;
 	- LinkedBlockingQueue:基于链表结构的阻塞队列，按FIFO排序元素。吞吐量通常高于ArrayBlockingQueue，静态工厂方法Executors.newFixedThreadPool()使用了这个队列；
 	- SynchronousQueue：不存储元素的阻塞队列，每个插入操作必须等到另一个线程调用移除操作。吞吐量通常高于LinkedBlockingQueue，静态工厂方法Executors.newCachedThreadPool使用了这个队列。
-- ThreadFactory:创建线程的工厂，可以配置更加有意义的名称；
+- ThreadFactory:创建线程的工厂，只定义了一个方法newThread，创建一个新线程的时候都会调用该方法,下面是自定义线程池用于区分不同线程池中的线程的demo；
+
+```java
+//自定义Thread类
+public class MyAppThread extends Thread{
+    public static final String DEFAULT_NAME = "MyAppThread";
+    private static volatile boolean debugLifyCycle  = false;
+    private static final AtomicInteger created = new AtomicInteger();
+    private static final AtomicInteger alive = new AtomicInteger();
+    private static final Logger log = Logger.getAnonymousLogger();
+
+    public MyAppThread(Runnable target) {
+        this(target,DEFAULT_NAME);
+    }
+
+    public MyAppThread(Runnable target, String name) {
+        super(target,name+"-"+created.incrementAndGet());
+        setUncaughtExceptionHandler(
+                new Thread.UncaughtExceptionHandler(){
+                    @Override
+                    public void uncaughtException(Thread t, Throwable e) {
+                        log.log(Level.SEVERE,"UNCAUGHT in thread "+t.getName(),e);
+                    }
+                }
+        );
+    }
+
+    @Override
+    public void run() {
+        boolean debug = debugLifyCycle;
+        if(debug){
+            log.log(Level.FINE,"Created "+getName());
+        }
+        try {
+            alive.incrementAndGet();
+            super.run();
+        } finally {
+            alive.decrementAndGet();
+            if(debug){
+                log.log(Level.FINE,"Exiting "+getName());
+            }
+        }
+    }
+
+    public static int getThreadsCreated(){return created.get();}
+    public static int getThreadsAlive(){return alive.get();}
+    public static boolean getDebug(){return debugLifyCycle;}
+    public static void setDebugLifyCycle(boolean debug){debugLifyCycle=debug;}
+}
+
+//自定义实现ThreadFactory
+public class MyThreadFactory implements ThreadFactory {
+    @Override
+    public Thread newThread(Runnable r) {
+        return new MyAppThread(r, poolName);
+    }
+
+    private final String poolName;
+
+    public MyThreadFactory(String poolName) {
+        this.poolName = poolName;
+    }
+
+}
+```
+
 - RejectedExecutionHandler（饱和策略）：当队列和线程池都满时候，对于新添加进行的任务，需要采取的策略。有以下四种，默认是AbortPolicy;
 	- AbortPolicy：直接抛出异常；
 	- CallerRunsPolicy：使用调用者所在线程来运行任务；
@@ -216,3 +281,4 @@ class MyCallable implements Callable<String>{
 - [Java线程池总结](https://www.cnblogs.com/aheizi/p/6851416.html)
 - [Java线程：Runnable、Callable、Future、FutureTask](https://www.jianshu.com/p/cf12d4244171)
 - [java多线程总结笔记3——Callable和Future](http://blog.csdn.net/wolfdrake/article/details/37767153)
+- 《java并发编程实战》
