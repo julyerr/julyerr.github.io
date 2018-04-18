@@ -247,6 +247,11 @@ mybatis是一个持久层框架，其核心是输入映射和输出映射
     单独使用mybatis需要配置MybatisConfiguration.xml文件，如果使用了spring只需要配置映射实体类映射即可。
 ```xml
 <!--如果使用spring，该配置交由sprig负责-->
+<typeAliases>
+        <!--<package name="com.julyerr.interviews.sql.mybatis.po"/>-->
+        <typeAlias alias="User" type="com.julyerr.interviews.sql.mybatis.po.User"/>
+</typeAliases>
+
 <environments default="development">
     <environment id="development">
         <!-- 使用jdbc事务管理，目前由mybatis来管理 -->
@@ -260,11 +265,6 @@ mybatis是一个持久层框架，其核心是输入映射和输出映射
         </dataSource>
     </environment>
 </environments>
-
-<typeAliases>
-        <!--<package name="com.julyerr.interviews.sql.mybatis.po"/>-->
-        <typeAlias alias="User" type="com.julyerr.interviews.sql.mybatis.po.User"/>
-</typeAliases>
 
 <mappers>
     <!--<package name="sqlMap"/>-->
@@ -442,7 +442,7 @@ resultType指定输出的类型，但是要求pojo列名和pojo中对应的属�
 **mybatis**优势<br>
 
 - 使用数据库连接池管理数据库的连接提高资源利用效率
-- 把sql语句放在xml配置文件中，修改sql语句也不需要重新编译java代码 
+- 把sql语句放在xml配置文件中，可以自定义sql提高查询等效率，同时修改sql语句也不需要重新编译java代码 
 - 查询的结果集，自动映射成 java对象
 
 下一篇[参见](http://julyerr.club/2018/03/05/mybatis-sumuptwo/)
