@@ -11,11 +11,10 @@ tags:
     - concurrent
 ---
 
->后台开发人员，多线程、网络、数据库等原生编程能力决定了你的高度；以前阅读过这方面的很多书籍，但是实践的经验相对缺少一点，这一阵子打算好好弥补一下。<br>
+>最近重温《多线程并发编程》一书，收获挺多的。一直想动手写一个多线程工具，本着不能盲目造轮子，参考了
+许多大神在github上的多线程实现的各种玩意（[参考](https://github.com/daimajia/java-multithread-downloader.git)），最后决定做一个多线程的文件下载器。多线程文件下载器虽然
+原理简单，但是把功能完善、各方面考虑周全还是有部分技术含量的。
 
-github上的开源项目很多，阅读高手代码，改进，变成自己的工具，个人认为是提高实践经验较好的途径。<br>
-
-今天就一个多线程文件下载[工具](https://github.com/daimajia/java-multithread-downloader.git)进行分析，该工程代码量不大（大概1200行左右），实现多线程下载文件的功能，同时支持断点续传的功能。<br>
 
 下面是整个项目的workflow
 
@@ -28,7 +27,7 @@ github上的开源项目很多，阅读高手代码，改进，变成自己的�
 
 
 ----
-篇幅原因，只对整体运行流程和关键结构、代码进行分析，所有代码[参见](https://github.com/julyerr/webutils/tree/master/java-multithread-downloader)
+篇幅原因，只对整体运行流程和关键结构、代码进行分析，所有代码[参见](https://github.com/julyerr/filedownloader)
 
 ### DownloadManager
 
@@ -37,7 +36,6 @@ github上的开源项目很多，阅读高手代码，改进，变成自己的�
 #### 重要成员变量及方法
 
 ![](/img/projects/filedownloader/missionM.png)
-![](/img/projects/filedownloader/missionM2.png)
 
 **线程池**
 
@@ -50,9 +48,9 @@ private static DownloadThreadPool mThreadPool = new DownloadThreadPool(DEFAULT_C
 **下载任务集合**
 
 ```java
-private Hashtable<Integer, DownloadMission> mMissions = new Hashtable<Integer, DownloadMission>();
+//    防止多线程操作同一个DownLoadMission
+private ConcurrentHashMap<Integer, DownloadMission> mMissions = new ConcurrentHashMap<>();
 ```
-
 
 ### DownloadThreadPool
 
@@ -65,10 +63,10 @@ private Hashtable<Integer, DownloadMission> mMissions = new Hashtable<Integer, D
 
 ```java
 //每个mission_id，对应一个队列，队列中存储同一个mission的多个线程运行之后的结果
-private ConcurrentHashMap<Integer, ConcurrentLinkedQueue<Future<?>>> mMissions_Monitor = new ConcurrentHashMap<>();
+private ConcurrentHashMap<Integer, ConcurrentLinkedQueue<Future<?>>> mMissionsMonitor = new ConcurrentHashMap<>();
 
 //设置该结构主要是方便操作已经完成的任务，对于future.isDone()可以从该队列中移除
-private ConcurrentHashMap<Future<?>, Runnable> mRunnable_Monitor_HashMap = new ConcurrentHashMap<>();
+private ConcurrentHashMap<Future<?>, Runnable> mRunnableMonitor = new ConcurrentHashMap<>();
 ```
 
 
@@ -83,17 +81,17 @@ public Future<?> submit(Runnable task) {
     if (task instanceof DownloadRunnable) {
         DownloadRunnable runnable = (DownloadRunnable) task;
 
-        if (mMissions_Monitor.containsKey(runnable.MISSION_ID)) {
-//          结果添加到 mMissions_Monitor 队列中
-            mMissions_Monitor.get(runnable.MISSION_ID).add(future);
+        if (mMissionsMonitor.containsKey(runnable.MISSION_ID)) {
+//          结果添加到 mMissionsMonitor 队列中
+            mMissionsMonitor.get(runnable.MISSION_ID).add(future);
         } else {
 //                构建新的任务队列
             ConcurrentLinkedQueue<Future<?>> queue = new ConcurrentLinkedQueue<>();
             queue.add(future);
-            mMissions_Monitor.put(runnable.MISSION_ID, queue);
+            mMissionsMonitor.put(runnable.MISSION_ID, queue);
         }
 
-        mRunnable_Monitor_HashMap.put(future, task);
+        mRunnableMonitor.put(future, task);
 
     } else {
         throw new RuntimeException(
@@ -115,10 +113,11 @@ protected void afterExecute(Runnable r, Throwable t) {
         System.out.println(Thread.currentThread().getId()
                 + " errroed! Retry");
     }
-    for (Future<?> future : mRunnable_Monitor_HashMap.keySet()) {
+//        自己忽略
+    for (Future<?> future : mRunnableMonitor.keySet()) {
         //    如果有新的线程完成，开启新的线程继续分担下载任务
         if (future.isDone() == false) {
-            DownloadRunnable runnable = (DownloadRunnable) mRunnable_Monitor_HashMap
+            DownloadRunnable runnable = (DownloadRunnable) mRunnableMonitor
                     .get(future);
             DownloadRunnable newRunnable = runnable.split();
             if (newRunnable != null) {
@@ -135,11 +134,14 @@ protected void afterExecute(Runnable r, Throwable t) {
 
 ```java
 public void cancel(int mission_id) {
-    ConcurrentLinkedQueue<Future<?>> futures = mMissions_Monitor
+    ConcurrentLinkedQueue<Future<?>> futures = mMissionsMonitor
             .remove(mission_id);
+    if (futures == null) {
+        return;
+    }
     for (Future<?> future : futures) {
 //            移除，取消
-        mRunnable_Monitor_HashMap.remove(future);
+        Runnable runnable = mRunnableMonitor.remove(future);
         future.cancel(true);
     }
 }
@@ -160,21 +162,9 @@ public void cancel(int mission_id) {
 ```java
 public void run() {
     File targetFile;
-//          建立目录
-    File dir = new File(mSaveDirectory + File.pathSeparator);
-    if (dir.exists() == false) {
-        dir.mkdirs();
-    }
 //          创建文件
     targetFile = new File(mSaveDirectory + File.separator
             + mSaveFileName);
-    if (targetFile.exists() == false) {
-        try {
-            targetFile.createNewFile();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     System.out.println("Download Task ID:" + Thread.currentThread().getId()
             + " has been started! Range From " + mCurrentPosition + " To "
@@ -233,17 +223,17 @@ public void run() {
 
 ```java
 public DownloadRunnable split() {
-    int end = mEndPosition;
-    int remaining = mEndPosition - mCurrentPosition;
-    int remainingCenter = remaining / 2;
+    long end = mEndPosition;
+    long remaining = mEndPosition - mCurrentPosition;
+    long remainingCenter = remaining >> 1;
     System.out.print("CurrentPosition:" + mCurrentPosition
             + " EndPosition:" + mEndPosition + "Rmaining:" + remaining
             + " ");
-//        1024×1024
-    if (remainingCenter > 1048576) {
-        int centerPosition = remainingCenter + mCurrentPosition;
+//        10*1024×1024
+    if (remainingCenter > 10485760) {
+        long centerPosition = remainingCenter + mCurrentPosition;
         System.out.print(" Center position:" + centerPosition);
-        //    将任务分段,多线程直接操作mEndPosition是有风险的，但是下载速度很慢，mEndPosition变化在BUF_SIZE(远小于1M)，发生错误很小很小
+        //    将任务分段,多线程直接操作mEndPosition是有风险的，但是下载速度很慢，mEndPosition变化在BUF_SIZE(远小于10M)，发生错误很小很小
         mEndPosition = centerPosition;
 
         DownloadRunnable newSplitedRunnable = new DownloadRunnable(
@@ -252,7 +242,7 @@ public DownloadRunnable split() {
         mDownloadMonitor.mHostMission.addPartedMission(newSplitedRunnable);
         return newSplitedRunnable;
     } else {
-        System.out.println(toString() + " can not be splited ,less than 1M");
+        System.out.println(toString() + " can not be splited ,less than 10M");
         return null;
     }
 }
@@ -263,9 +253,9 @@ public DownloadRunnable split() {
 为了及时停止文件的下载过程，提供interrupt()方法（future.cancel会自动调用）
 
 ```java
-try {
-    //引发数据读取异常，然后退出while循环
-    this.inputStream.close();
+public void interrupt() {
+    try {
+        this.inputStream.close();
     } catch (IOException e) {
     }
 }
@@ -304,21 +294,17 @@ private ArrayList<RecoveryRunnableInfo> mRecoveryRunnableInfos = new ArrayList<>
 
 mSpeedTimer.scheduleAtFixedRate(mSpeedMonitor, 0, 1000);
 
-private static class SpeedMonitor extends TimerTask {
-    //...
-    @Override
-    //      每一秒时间更新速度
-    public void run() {
-        mCounter++;
-        mCurrentSecondSize = mHostMission.getDownloadedSize();
-        mSpeed = mCurrentSecondSize - mLastSecondSize;
-        mLastSecondSize = mCurrentSecondSize;
-        if (mSpeed > mMaxSpeed) {
-            mMaxSpeed = mSpeed;
-        }
-
-        mAverageSpeed = mCurrentSecondSize / mCounter;
+//   每一秒时间更新速度
+public void run() {
+    mCounter++;
+    mCurrentSecondSize = mHostMission.getDownloadedSize();
+    mSpeed = mCurrentSecondSize - mLastSecondSize;
+    mLastSecondSize = mCurrentSecondSize;
+    if (mSpeed > mMaxSpeed) {
+        mMaxSpeed = mSpeed;
     }
+
+    mAverageSpeed = mCurrentSecondSize / mCounter;
 }
 
 ```
@@ -385,88 +371,83 @@ public int getDownloadedSize() {
 静态方法，新建一个任务，如果任务完成，返回null
 
 ```java
-public static DownloadMission newDownloadMission(String url, String saveDirectory, String saveName)
+public static DownloadMission newDownloadMission(String url)
+            throws IOException {
+    File tmp = new File(".");
+    String saveDirectory = tmp.getCanonicalPath();
+    String saveName = url.substring(url.lastIndexOf("/") + 1);
+    return newMissionInterface(url, saveDirectory, saveName);
+}
+
+private static DownloadMission newMissionInterface(String url, String saveDirectory, String saveName)
         throws IOException {
-//        如果任务已经下载完成，返回
+    //        如果任务已经下载完成，返回
     if (isMission_Finished(url, saveDirectory, saveName)) {
         return null;
     }
+    createTargetFile(saveDirectory, saveName);
+    createProgessFile(saveDirectory, saveName);
 
-    DownloadMission downloadMission = new DownloadMission(url, saveDirectory, saveName);
-    return downloadMission;
-}
-
-public static boolean isMission_Finished(String url, String saveDirectory, String saveName)
-            throws IOException {
-    int size = getContentLength(url);
-    if (saveDirectory.endsWith("/")) {
-        saveDirectory = saveDirectory.substring(0, saveDirectory.length() - 1);
-    }
-    File file = new File(saveDirectory + "/" + saveName);
-//        下载文件大小和网络请求所获文件大小相同
-    if (file.length() == size) {
-        return true;
-    }
-    return false;
+    return recoverMissionFromProgressFile(url, saveDirectory, saveName);
 }
 ```
 
-**resumeMission**
+**recoverMissionFromProgressFile**
 
 ```java
-//    将xml文件内容恢复到对象中
-private void resumeMission() throws IOException {
-
+public static DownloadMission recoverMissionFromProgressFile(
+        String url, String dir, String name)
+        throws IOException {
+    DownloadMission mission = null;
     try {
-        File progressFile = new File(FileUtils.getSafeDirPath(mProgressDir)
-                + File.separator + mProgressFileName);
-        if (progressFile.exists() == false) {
-            throw new IOException("Progress File does not exsist");
-        }
+        File progressFile = new File(
+                FileUtils.getSafeDirPath(dir)
+                        + File.separator + name + ".xml");
 
         JAXBContext context = JAXBContext
                 .newInstance(DownloadMission.class);
         Unmarshaller unmarshaller = context.createUnmarshaller();
-        DownloadMission mission = (DownloadMission) unmarshaller
+        mission = (DownloadMission) unmarshaller
                 .unmarshal(progressFile);
-        File targetSaveFile = new File(
-                FileUtils.getSafeDirPath(mission.mSaveDirectory
-                        + File.separator + mission.mSaveName));
-        if (targetSaveFile.exists() == false) {
-            throw new IOException(
-                    "Try to continue download file , but target file does not exist");
-        }
-//            将下载信息放入到recoveryRunnableInfo数组中
-        ArrayList<RecoveryRunnableInfo> recoveryRunnableInfos = getDownloadProgress();
-        recoveryRunnableInfos.clear();
-        for (DownloadRunnable runnable : mission.mDownloadParts) {
-            recoveryRunnableInfos.add(new RecoveryRunnableInfo(runnable
-                    .getStartPosition(), runnable.getCurrentPosition(),
-                    runnable.getEndPosition()));
-        }
-        mSpeedMonitor = new SpeedMonitor(this);
-        mStoreMonitor = new StoreMonitor();
-        System.out.println("Resume finished");
-        mDownloadParts.clear();
+        System.out.println("resume form file");
     } catch (JAXBException e) {
-//            e.printStackTrace();
+        mission = new DownloadMission();
     }
+    mission.mUrl = url;
+    mission.mSaveDirectory = dir;
+    mission.mSaveName = name;
+    mission.mProgressDir = dir;
+    mission.mProgressFileName = name + ".xml";
+//        unmarshall过程this无效
+    mission.mSpeedMonitor.mHostMission = mission;
+    mission.mMonitor.mHostMission = mission;
+    mission.mMonitor.mDownloadedSize.set(0);
+//            mission.mMissionID = MISSION_ID_COUNTER++;
+    ArrayList<RecoveryRunnableInfo> recoveryRunnableInfos = mission
+            .getDownloadProgress();
+    for (DownloadRunnable runnable : mission.mDownloadParts) {
+        mission.mRecoveryRunnableInfos.add(new RecoveryRunnableInfo(runnable
+                .getStartPosition(), runnable.getCurrentPosition(),
+                runnable.getEndPosition()));
+    }
+    mission.mDownloadParts.clear();
+    return mission;
 }
 ```
 
 **splitDownload**
 
 ```java
-//    将整个文件平均分给每个线程
+ //    将整个文件平均分给每个线程
 private ArrayList<DownloadRunnable> splitDownload(int thread_count) {
-    ArrayList<DownloadRunnable> runnables = new ArrayList<DownloadRunnable>();
+    ArrayList<DownloadRunnable> runnables = new ArrayList<>();
     try {
-        int size = getContentLength(mUrl);
+        long size = getContentLength(mUrl);
         mFileSize = size;
-        int sublen = size / thread_count;
+        long sublen = size / thread_count;
         for (int i = 0; i < thread_count; i++) {
-            int startPos = sublen * i;
-            int endPos = (i == thread_count - 1) ? size
+            long startPos = sublen * i;
+            long endPos = (i == thread_count - 1) ? size
                     : (sublen * (i + 1) - 1);
             DownloadRunnable runnable = new DownloadRunnable(this.mMonitor,
                     mUrl, mSaveDirectory, mSaveName, startPos, endPos);
@@ -484,14 +465,9 @@ private ArrayList<DownloadRunnable> splitDownload(int thread_count) {
 ```java
 //    分为恢复和重新下载两个逻辑
 public void startMission(DownloadThreadPool threadPool) {
-    try {
-        resumeMission();
-    } catch (IOException e) {
-        e.printStackTrace();
-    }
     mThreadPoolRef = threadPool;
     if (mRecoveryRunnableInfos.size() != 0) {
-//            将恢复结果中未下载完毕的文件下载完毕
+//            将恢复结果剩余的未下载完毕的文件下载完毕
         for (RecoveryRunnableInfo runnableInfo : mRecoveryRunnableInfos) {
             if (runnableInfo.isFinished == false) {
                 setDownloadStatus(DOWNLOADING);
@@ -503,6 +479,7 @@ public void startMission(DownloadThreadPool threadPool) {
                 mDownloadParts.add(runnable);
                 threadPool.submit(runnable);
             }
+            mMonitor.mDownloadedSize.addAndGet(runnableInfo.mCurrentPosition - runnableInfo.mStartPosition);
         }
     } else {
 //            重新下载
@@ -515,7 +492,7 @@ public void startMission(DownloadThreadPool threadPool) {
 //        利于垃圾回收
     mRecoveryRunnableInfos = null;
     mSpeedTimer.scheduleAtFixedRate(mSpeedMonitor, 0, 1000);
-    mStoreTimer.scheduleAtFixedRate(mStoreMonitor, 0, 5000);
+    mStoreTimer.scheduleAtFixedRate(mStoreMonitor, 0, 1000);
 }
 ```
 
@@ -527,15 +504,23 @@ private void setDownloadStatus(int status) {
     mMissionStatus = status;
     if (status == FINISHED) {
 //            可以取消该任务
-        cancel();
+        mSpeedMonitor.mSpeed = 0;
+        mSpeedTimer.cancel();
+        mStoreMonitor.cancel();
+        mDownloadParts.clear();
+        deleteProgressFile();
+        isFinished = true;
     }
 }
 
 public void cancel() {
+//        速度置零
+    mSpeedMonitor.mSpeed = 0;
     mSpeedTimer.cancel();
     mStoreMonitor.cancel();
     mDownloadParts.clear();
     mThreadPoolRef.cancel(mMissionID);
+//  删除下载状态文件
     deleteProgressFile();
 }
 ```
@@ -545,13 +530,13 @@ public void cancel() {
 ```java
 public static void main(String[] args) {
     DownloadManager downloadManager = DownloadManager.getInstance();
-    String qQString = "http://down.myapp.com/android/45592/881859/qq2013_4.0.2.1550_android.apk";
+    String qQString = "https://mirrors.aliyun.com/docker-ce/linux/centos/7/x86_64/stable/Packages/docker-ce-18.03.1.ce-1.el7.centos.x86_64.rpm";
 
     /*** type you save direcotry ****/
-    String saveDirectory = "/home/julyerr/Desktop";
+    String saveDirectory = "/home/julyerr/github/yourself/repo/filedownloader/target";
     try {
         DownloadMission mission = newDownloadMission(qQString,
-                saveDirectory, "test1");
+                saveDirectory);
         downloadManager.addMission(mission);
         downloadManager.start();
         int counter = 0;
@@ -562,12 +547,19 @@ public static void main(String[] args) {
                     + downloadManager.getReadableDownloadSize());
             Thread.sleep(1000);
             counter++;
+            if (downloadManager.isAllTasksFinished()) {
+//                    让其他线程处理运行完成
+                Thread.sleep(500);
+                break;
+            }
         }
     } catch (IOException e1) {
         e1.printStackTrace();
     } catch (InterruptedException e) {
         e.printStackTrace();
     }
+    downloadManager.shutdDownloadRudely();
+    System.exit(0);
 }
 ```
 
